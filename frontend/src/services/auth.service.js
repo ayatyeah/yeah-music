@@ -78,7 +78,7 @@ export const authService = {
 				user: sanitizeUser(newUser),
 				token: `mock_jwt_${Date.now()}`,
 			},
-			{ failureRate: 0.04, latencyMin: 600, latencyMax: 1400 }
+			{ failureRate: 0, latencyMin: 600, latencyMax: 1400 }
 		);
 
 		return response.data;
@@ -98,7 +98,7 @@ export const authService = {
 				user: sanitizeUser(user),
 				token: `mock_jwt_${Date.now()}`,
 			},
-			{ failureRate: 0.05, latencyMin: 500, latencyMax: 1200 }
+			{ failureRate: 0, latencyMin: 500, latencyMax: 1200 }
 		);
 
 		return response.data;
