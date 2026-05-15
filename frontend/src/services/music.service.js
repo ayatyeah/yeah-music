@@ -1,7 +1,7 @@
-import { mockApi } from './mockApi';
+import api from './api';
 
 export const musicService = {
-	fetchSongs: (songs) => mockApi.execute(songs, { latencyMin: 300, latencyMax: 900 }),
-	fetchPlaylists: (playlists) => mockApi.execute(playlists, { latencyMin: 400, latencyMax: 1200 }),
-	search: (results) => mockApi.execute(results, { latencyMin: 250, latencyMax: 800 }),
+	fetchSongs: async () => api.get('/music/tracks'),
+	createSong: async (payload) => api.post('/music/tracks', payload),
+	updateSong: async (trackId, payload) => api.put(`/music/tracks/${trackId}`, payload),
 };

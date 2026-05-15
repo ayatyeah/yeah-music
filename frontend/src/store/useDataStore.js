@@ -1,8 +1,33 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { mockApi } from '../services/mockApi';
+import { musicService } from '../services/music.service';
 import { seedArtists, seedLibrary, seedPlaylists } from '../utils/mockData';
 import { useNotificationStore } from './useNotificationStore';
+
+const buildArtistsFromLibrary = (library, currentArtists = []) => {
+  const artistsByKey = new Map();
+
+  currentArtists.forEach((artist) => {
+    const key = artist.id || artist.name;
+    if (key) artistsByKey.set(key, artist);
+  });
+
+  library.forEach((track) => {
+    const artistKey = track.artistId || track.artist;
+    if (!artistKey || artistsByKey.has(artistKey)) return;
+
+    artistsByKey.set(artistKey, {
+      id: track.artistId || `artist_${String(track.artist || '').toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+      name: track.artist,
+      verified: false,
+      avatar: track.cover || '',
+      followers: 0,
+    });
+  });
+
+  return Array.from(artistsByKey.values());
+};
 
 export const useDataStore = create(
   persist(
@@ -17,6 +42,28 @@ export const useDataStore = create(
       uploadQueue: 0,
       isLoading: false,
       error: null,
+
+      loadLibrary: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await musicService.fetchSongs();
+          const items = response.data?.items || [];
+          set((state) => ({
+            library: items,
+            artists: buildArtistsFromLibrary(items, state.artists),
+            isLoading: false,
+          }));
+          return items;
+        } catch (error) {
+          set({ isLoading: false, error: error.message });
+          useNotificationStore.getState().addToast({
+            type: 'error',
+            title: 'Library load failed',
+            message: error.message,
+          });
+          throw error;
+        }
+      },
 
       likeTrack: async (trackId) => {
         const { likedSongs } = get();
@@ -79,21 +126,26 @@ export const useDataStore = create(
 
         set({ isLoading: true, error: null });
         try {
-          const response = await mockApi.execute(nextTrack, { latencyMin: 500, latencyMax: 1200 });
+          const response = await musicService.updateSong(trackId, nextTrack);
+          const updatedTrack = response.data?.item || response.data;
           set((state) => ({
-            library: state.library.map((track) => (track.id === trackId ? response.data : track)),
+            library: state.library.map((track) => (track.id === trackId ? updatedTrack : track)),
             playlists: state.playlists.map((playlist) => ({
               ...playlist,
-              tracks: playlist.tracks.map((track) => (track.id === trackId ? response.data : track)),
+              tracks: playlist.tracks.map((track) => (track.id === trackId ? updatedTrack : track)),
             })),
+            artists: buildArtistsFromLibrary(
+              state.library.map((track) => (track.id === trackId ? updatedTrack : track)),
+              state.artists
+            ),
             isLoading: false,
           }));
           useNotificationStore.getState().addToast({
             type: 'success',
             title: 'Release updated',
-            message: `"${response.data.title}" was saved.`,
+            message: `"${updatedTrack.title}" was saved.`,
           });
-          return response.data;
+          return updatedTrack;
         } catch (error) {
           set({ library: original, isLoading: false, error: error.message });
           useNotificationStore.getState().addToast({
@@ -206,33 +258,21 @@ export const useDataStore = create(
             plays: 0,
             createdAt: new Date().toISOString(),
           };
-          const response = await mockApi.execute(newTrack, { latencyMin: 1000, latencyMax: 3000 });
+          const response = await musicService.createSong(newTrack);
+          const createdTrack = response.data?.item || response.data;
 
           set((state) => ({
-            library: [response.data, ...state.library],
-            artists: state.artists.some(
-              (artist) => artist.id === response.data.artistId || artist.name === response.data.artist
-            )
-              ? state.artists
-              : [
-                  ...state.artists,
-                  {
-                    id: response.data.artistId || `artist_${Date.now()}`,
-                    name: response.data.artist,
-                    verified: false,
-                    avatar: response.data.cover || '',
-                    followers: 0,
-                  },
-                ],
+            library: [createdTrack, ...state.library],
+            artists: buildArtistsFromLibrary([createdTrack, ...state.library], state.artists),
             isLoading: false,
             uploadQueue: Math.max(0, state.uploadQueue - 1),
           }));
           useNotificationStore.getState().addToast({
             type: 'success',
             title: 'Upload complete',
-            message: `"${response.data.title}" is now live.`,
+            message: `"${createdTrack.title}" is now live.`,
           });
-          return response.data;
+          return createdTrack;
         } catch (error) {
           set((state) => ({
             isLoading: false,
@@ -250,12 +290,20 @@ export const useDataStore = create(
     }),
     {
       name: 'yeahmusic-storage',
-      version: 2,
+      version: 3,
+      partialize: (state) => ({
+        likedSongs: state.likedSongs,
+        history: state.history,
+        followedArtists: state.followedArtists,
+        recentSearches: state.recentSearches,
+        playlists: state.playlists,
+      }),
       migrate: (state) => ({
-        ...state,
-        library: (state?.library || []).filter(
-          (track) => !String(track?.audioUrl || '').includes('soundhelix')
-        ),
+        likedSongs: state?.likedSongs || [],
+        history: state?.history || [],
+        followedArtists: state?.followedArtists || [],
+        recentSearches: state?.recentSearches || [],
+        playlists: state?.playlists || seedPlaylists,
       }),
     }
   )

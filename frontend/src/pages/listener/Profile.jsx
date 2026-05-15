@@ -2,14 +2,12 @@ import { useState } from 'react';
 import TopNav from '../../components/layout/TopNav';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useDataStore } from '../../store/useDataStore';
-import { useNotificationStore } from '../../store/useNotificationStore';
 import { Upload, Edit2, Save, X } from 'lucide-react';
 import { fileToOptimizedAvatarDataUrl } from '../../utils/image';
 
 export default function Profile() {
   const { user, logout, updateProfile, isLoading } = useAuthStore();
   const { followedArtists, artists } = useDataStore();
-  const addToast = useNotificationStore((state) => state.addToast);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -65,19 +63,6 @@ export default function Profile() {
         message: err.message || 'Failed to update profile.',
       });
     }
-  };
-
-  const handleClearData = () => {
-    localStorage.removeItem('yeahmusic-storage');
-    localStorage.removeItem('yeahmusic-auth');
-    localStorage.removeItem('yeahmusic-reset-v1');
-    indexedDB.deleteDatabase('yeahmusic-media');
-    addToast({
-      type: 'info',
-      title: 'Data cleared',
-      message: 'Local data removed. Reloading app...',
-    });
-    setTimeout(() => window.location.reload(), 800);
   };
 
   return (
@@ -160,12 +145,6 @@ export default function Profile() {
                 >
                   <Edit2 size={18} />
                   Edit profile
-                </button>
-                <button
-                  onClick={handleClearData}
-                  className="bg-[#1a1a1a] text-gray-200 px-4 py-2 rounded-lg border border-gray-700 hover:border-gray-500"
-                >
-                  Clear data
                 </button>
                 <button
                   onClick={logout}
