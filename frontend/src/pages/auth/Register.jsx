@@ -76,19 +76,19 @@ export default function Register() {
       : '';
 
   return (
-    <div className="min-h-screen w-full bg-black flex items-center justify-center px-6 py-12">
-      <div className="w-full max-w-2xl bg-[#141414] border border-white/10 rounded-3xl p-10 shadow-2xl">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-yeah-accent/20 flex items-center justify-center text-yeah-accent">
+    <div className="min-h-screen w-full bg-black flex items-start sm:items-center justify-center px-3 sm:px-6 py-4 sm:py-12 overflow-x-hidden">
+      <div className="w-full max-w-2xl bg-[#141414] border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-10 shadow-2xl">
+        <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 shrink-0 rounded-2xl bg-yeah-accent/20 flex items-center justify-center text-yeah-accent">
             <Music size={24} />
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-white">Create your YeahMusic account</h1>
-            <p className="text-gray-400">Join the platform powering modern streaming.</p>
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl leading-tight font-bold text-white">Create your YeahMusic account</h1>
+            <p className="text-sm sm:text-base text-gray-400 mt-1">Join the platform powering modern streaming.</p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <div className="col-span-1">
             <label className="text-sm text-gray-400">Username</label>
             <div className="relative mt-2">
@@ -190,11 +190,11 @@ export default function Register() {
 
           <div className="col-span-1">
             <label className="text-sm text-gray-400">Avatar</label>
-            <div className="flex gap-2 mt-2">
-              <label className="flex-1 relative">
+            <div className="flex flex-col sm:flex-row gap-2 mt-2">
+              <label className="flex-1 relative min-w-0">
                 <div className="w-full bg-[#1f1f1f] text-white rounded-lg py-3 px-4 border border-gray-800 focus:border-yeah-accent outline-none cursor-pointer hover:bg-[#242424] flex items-center gap-2">
-                  <Upload size={18} />
-                  <span className="text-sm">Upload photo</span>
+                  <Upload size={18} className="shrink-0" />
+                  <span className="text-sm truncate">Upload photo</span>
                 </div>
                 <input
                   type="file"
@@ -206,7 +206,7 @@ export default function Register() {
               <button
                 type="button"
                 onClick={() => setShowAvatarGrid(!showAvatarGrid)}
-                className="px-4 py-3 bg-[#1f1f1f] text-white rounded-lg border border-gray-800 hover:bg-[#242424] text-sm"
+                className="px-4 py-3 bg-[#1f1f1f] text-white rounded-lg border border-gray-800 hover:bg-[#242424] text-sm whitespace-nowrap"
               >
                 Choose preset
               </button>
@@ -217,7 +217,7 @@ export default function Register() {
           </div>
 
           {showAvatarGrid && (
-            <div className="col-span-2 bg-[#1a1a1a] rounded-xl p-4 border border-gray-800">
+            <div className="md:col-span-2 bg-[#1a1a1a] rounded-xl p-3 sm:p-4 border border-gray-800">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-sm text-gray-400">Select a preset avatar</p>
                 <button
@@ -228,7 +228,7 @@ export default function Register() {
                   <X size={18} />
                 </button>
               </div>
-              <div className="grid grid-cols-6 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
                 {defaultAvatars.map((avatar, idx) => (
                   <button
                     key={idx}
@@ -250,16 +250,16 @@ export default function Register() {
             </div>
           )}
 
-          <div className="col-span-2 flex items-center gap-4 bg-[#1a1a1a] rounded-xl p-4">
-            <img src={form.avatar} alt="Avatar preview" className="w-16 h-16 rounded-full object-cover" />
-            <div className="text-sm text-gray-400">
+          <div className="md:col-span-2 flex items-center gap-3 sm:gap-4 bg-[#1a1a1a] rounded-xl p-3 sm:p-4 min-w-0">
+            <img src={form.avatar} alt="Avatar preview" className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-full object-cover" />
+            <div className="text-sm text-gray-400 min-w-0">
               <p className="text-white font-semibold">Profile preview</p>
               <p>Your avatar will be displayed on your profile and throughout the app.</p>
             </div>
           </div>
 
           {(validationError || error) && (
-            <div className="col-span-2 bg-red-500/10 text-red-300 text-sm rounded-lg px-4 py-3">
+            <div className="md:col-span-2 bg-red-500/10 text-red-300 text-sm rounded-lg px-4 py-3">
               {validationError || error}
             </div>
           )}
@@ -267,7 +267,7 @@ export default function Register() {
           <button
             type="submit"
             disabled={isLoading || Boolean(validationError)}
-            className="col-span-2 bg-yeah-accent text-black font-bold py-3 rounded-lg transition-all hover:scale-[1.01] disabled:opacity-60"
+            className="md:col-span-2 bg-yeah-accent text-black font-bold py-3 rounded-lg transition-all hover:scale-[1.01] disabled:opacity-60"
           >
             {isLoading ? 'Creating account...' : 'Create account'}
           </button>
