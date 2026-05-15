@@ -1,0 +1,161 @@
+version: '3.9'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5173:5173"
+
+  frontend-nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "127.0.0.1:80:80"
+    volumes:
+      - ./frontend/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+
+  api-gateway:
+    build:
+      context: ./backend
+      dockerfile: api-gateway/Dockerfile
+    environment:
+      - PORT=4010
+      - AUTH_URL=http://auth-service:4001
+      - MUSIC_URL=http://music-service:4002
+      - PLAYLIST_URL=http://playlist-service:4003
+      - UPLOAD_URL=http://upload-service:4004
+      - ANALYTICS_URL=http://analytics-service:4005
+      - NOTIFY_URL=http://notification-service:4006
+    ports:
+      - "127.0.0.1:4010:4010"
+    depends_on:
+      - auth-service
+      - music-service
+      - playlist-service
+      - upload-service
+      - analytics-service
+      - notification-service
+
+  auth-service:
+    build:
+      context: ./backend
+      dockerfile: auth-service/Dockerfile
+    environment:
+      - PORT=4001
+    ports:
+      - "127.0.0.1:4001:4001"
+
+  music-service:
+    build:
+      context: ./backend
+      dockerfile: music-service/Dockerfile
+    environment:
+      - PORT=4002
+      - MUSIC_DB_PRIMARY_URL=postgres://music:musicpass@music-db-primary:5432/music
+      - MUSIC_DB_REPLICA_URL=postgres://music:musicpass@music-db-replica:5432/music
+    ports:
+      - "127.0.0.1:4002:4002"
+    depends_on:
+      - music-db-primary
+      - music-db-replica
+
+  playlist-service:
+    build:
+      context: ./backend
+      dockerfile: playlist-service/Dockerfile
+    environment:
+      - PORT=4003
+    ports:
+      - "127.0.0.1:4003:4003"
+
+  upload-service:
+    build:
+      context: ./backend
+      dockerfile: upload-service/Dockerfile
+    environment:
+      - PORT=4004
+    ports:
+      - "127.0.0.1:4004:4004"
+
+  analytics-service:
+    build:
+      context: ./backend
+      dockerfile: analytics-service/Dockerfile
+    environment:
+      - PORT=4005
+    ports:
+      - "127.0.0.1:4005:4005"
+
+  notification-service:
+    build:
+      context: ./backend
+      dockerfile: notification-service/Dockerfile
+    environment:
+      - PORT=4006
+    ports:
+      - "127.0.0.1:4006:4006"
+
+  music-db-primary:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=music
+      - POSTGRES_USER=music
+      - POSTGRES_PASSWORD=musicpass
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - music-db-primary-data:/var/lib/postgresql/data
+
+  music-db-replica:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=music
+      - POSTGRES_USER=music
+      - POSTGRES_PASSWORD=musicpass
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - music-db-replica-data:/var/lib/postgresql/data
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts/rules.yml:/etc/prometheus/rules.yml:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "127.0.0.1:9091:9090"
+    depends_on:
+      - api-gateway
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.0
+    volumes:
+      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+    ports:
+      - "127.0.0.1:9093:9093"
+
+  grafana:
+    image: grafana/grafana:11.5.0
+    ports:
+      - "127.0.0.1:3002:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+
+volumes:
+  music-db-primary-data:
+  music-db-replica-data:

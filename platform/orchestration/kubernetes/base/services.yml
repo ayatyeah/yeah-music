@@ -1,0 +1,281 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: yeahmusic
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: yeahmusic/auth-service:latest
+          ports:
+            - containerPort: 4001
+          env:
+            - name: PORT
+              value: "4001"
+          readinessProbe:
+            httpGet: { path: /readyz, port: 4001 }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: 4001 }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: yeahmusic
+spec:
+  selector:
+    app: auth-service
+  ports:
+    - name: http
+      port: 4001
+      targetPort: 4001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: music-service
+  namespace: yeahmusic
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: music-service
+  template:
+    metadata:
+      labels:
+        app: music-service
+    spec:
+      containers:
+        - name: music-service
+          image: yeahmusic/music-service:latest
+          ports:
+            - containerPort: 4002
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+          env:
+            - name: PORT
+              value: "4002"
+            - name: MUSIC_DB_PRIMARY_URL
+              value: "postgres://music:musicpass@music-db-primary:5432/music"
+            - name: MUSIC_DB_REPLICA_URL
+              value: "postgres://music:musicpass@music-db-replica:5432/music"
+          readinessProbe:
+            httpGet: { path: /readyz, port: 4002 }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: 4002 }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: music-service
+  namespace: yeahmusic
+spec:
+  selector:
+    app: music-service
+  ports:
+    - name: http
+      port: 4002
+      targetPort: 4002
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: playlist-service
+  namespace: yeahmusic
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: playlist-service
+  template:
+    metadata:
+      labels:
+        app: playlist-service
+    spec:
+      containers:
+        - name: playlist-service
+          image: yeahmusic/playlist-service:latest
+          ports:
+            - containerPort: 4003
+          env:
+            - name: PORT
+              value: "4003"
+          readinessProbe:
+            httpGet: { path: /readyz, port: 4003 }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: 4003 }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: playlist-service
+  namespace: yeahmusic
+spec:
+  selector:
+    app: playlist-service
+  ports:
+    - name: http
+      port: 4003
+      targetPort: 4003
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: upload-service
+  namespace: yeahmusic
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: upload-service
+  template:
+    metadata:
+      labels:
+        app: upload-service
+    spec:
+      containers:
+        - name: upload-service
+          image: yeahmusic/upload-service:latest
+          ports:
+            - containerPort: 4004
+          env:
+            - name: PORT
+              value: "4004"
+          readinessProbe:
+            httpGet: { path: /readyz, port: 4004 }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: 4004 }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: upload-service
+  namespace: yeahmusic
+spec:
+  selector:
+    app: upload-service
+  ports:
+    - name: http
+      port: 4004
+      targetPort: 4004
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-service
+  namespace: yeahmusic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: analytics-service
+  template:
+    metadata:
+      labels:
+        app: analytics-service
+    spec:
+      containers:
+        - name: analytics-service
+          image: yeahmusic/analytics-service:latest
+          ports:
+            - containerPort: 4005
+          env:
+            - name: PORT
+              value: "4005"
+          readinessProbe:
+            httpGet: { path: /readyz, port: 4005 }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: 4005 }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytics-service
+  namespace: yeahmusic
+spec:
+  selector:
+    app: analytics-service
+  ports:
+    - name: http
+      port: 4005
+      targetPort: 4005
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: yeahmusic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: yeahmusic/notification-service:latest
+          ports:
+            - containerPort: 4006
+          env:
+            - name: PORT
+              value: "4006"
+          readinessProbe:
+            httpGet: { path: /readyz, port: 4006 }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: 4006 }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: yeahmusic
+spec:
+  selector:
+    app: notification-service
+  ports:
+    - name: http
+      port: 4006
+      targetPort: 4006
+

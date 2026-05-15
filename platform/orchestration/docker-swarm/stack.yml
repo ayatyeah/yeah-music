@@ -1,0 +1,154 @@
+version: "3.9"
+
+services:
+  api-gateway:
+    image: yeahmusic/api-gateway:latest
+    ports:
+      - "4010:4010"
+    environment:
+      - PORT=4010
+      - AUTH_URL=http://auth-service:4001
+      - MUSIC_URL=http://music-service:4002
+      - PLAYLIST_URL=http://playlist-service:4003
+      - UPLOAD_URL=http://upload-service:4004
+      - ANALYTICS_URL=http://analytics-service:4005
+      - NOTIFY_URL=http://notification-service:4006
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  auth-service:
+    image: yeahmusic/auth-service:latest
+    environment:
+      - PORT=4001
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  music-service:
+    image: yeahmusic/music-service:latest
+    environment:
+      - PORT=4002
+      - MUSIC_DB_PRIMARY_URL=postgres://music:musicpass@music-db-primary:5432/music
+      - MUSIC_DB_REPLICA_URL=postgres://music:musicpass@music-db-replica:5432/music
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  playlist-service:
+    image: yeahmusic/playlist-service:latest
+    environment:
+      - PORT=4003
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  upload-service:
+    image: yeahmusic/upload-service:latest
+    environment:
+      - PORT=4004
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  analytics-service:
+    image: yeahmusic/analytics-service:latest
+    environment:
+      - PORT=4005
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  notification-service:
+    image: yeahmusic/notification-service:latest
+    environment:
+      - PORT=4006
+    ports:
+      - "4006:4006"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  music-db-primary:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=music
+      - POSTGRES_USER=music
+      - POSTGRES_PASSWORD=musicpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - music_db_primary_data:/var/lib/postgresql/data
+    deploy:
+      replicas: 1
+
+  music-db-replica:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=music
+      - POSTGRES_USER=music
+      - POSTGRES_PASSWORD=musicpass
+    ports:
+      - "5433:5432"
+    volumes:
+      - music_db_replica_data:/var/lib/postgresql/data
+    deploy:
+      replicas: 1
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    ports:
+      - "9090:9090"
+    configs:
+      - source: prometheus_yml
+        target: /etc/prometheus/prometheus.yml
+      - source: prometheus_rules
+        target: /etc/prometheus/rules.yml
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    deploy:
+      replicas: 1
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.0
+    ports:
+      - "9093:9093"
+    configs:
+      - source: alertmanager_yml
+        target: /etc/alertmanager/alertmanager.yml
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+    deploy:
+      replicas: 1
+
+  grafana:
+    image: grafana/grafana:11.5.0
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+    deploy:
+      replicas: 1
+
+configs:
+  prometheus_yml:
+    file: ../../../monitoring/prometheus/prometheus.yml
+  prometheus_rules:
+    file: ../../../monitoring/alerts/rules.yml
+  alertmanager_yml:
+    file: ../../../monitoring/alertmanager/alertmanager.yml
+
+volumes:
+  music_db_primary_data:
+  music_db_replica_data:
+

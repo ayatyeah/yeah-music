@@ -1,0 +1,16 @@
+global:
+  resolve_timeout: 1m
+
+route:
+  receiver: "default"
+  group_by: ["alertname", "service", "job"]
+  group_wait: 5s
+  group_interval: 30s
+  repeat_interval: 2m
+
+receivers:
+  - name: "default"
+    webhook_configs:
+      - url: "http://notification-service:4006/notify"
+        send_resolved: true
+

@@ -1,0 +1,29 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+rule_files:
+  - /etc/prometheus/rules.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+scrape_configs:
+  - job_name: "api-gateway"
+    static_configs:
+      - targets: ["api-gateway:4010"]
+    metrics_path: /metrics
+
+  - job_name: "services"
+    static_configs:
+      - targets:
+          - "auth-service:4001"
+          - "music-service:4002"
+          - "playlist-service:4003"
+          - "upload-service:4004"
+          - "analytics-service:4005"
+          - "notification-service:4006"
+    metrics_path: /metrics
+

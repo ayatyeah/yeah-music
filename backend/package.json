@@ -1,0 +1,22 @@
+{
+  "name": "yeahmusic-backend",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "common",
+    "auth-service",
+    "music-service",
+    "playlist-service",
+    "upload-service",
+    "analytics-service",
+    "notification-service",
+    "api-gateway"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test"
+  }
+}
+

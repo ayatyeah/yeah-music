@@ -1,0 +1,101 @@
+---
+- name: Provision node for YeahMusic SRE demo
+  hosts: yeahmusic_nodes
+  become: true
+  vars:
+    install_kubernetes: true
+    kubernetes_version_channel: "v1.30"
+  tasks:
+    - name: Install apt dependencies
+      apt:
+        name:
+          - ca-certificates
+          - curl
+          - gpg
+          - git
+        update_cache: true
+
+    - name: Install Docker (get.docker.com)
+      shell: |
+        set -e
+        if ! command -v docker >/dev/null 2>&1; then
+          curl -fsSL https://get.docker.com | sh
+        fi
+      args:
+        executable: /bin/bash
+
+    - name: Ensure docker is enabled and running
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Disable swap now (required by kubelet)
+      command: swapoff -a
+      when: install_kubernetes | bool
+
+    - name: Disable swap in fstab (required by kubelet)
+      replace:
+        path: /etc/fstab
+        regexp: '^([^#].*\s+swap\s+.*)$'
+        replace: '# \1'
+      when: install_kubernetes | bool
+
+    - name: Ensure apt keyrings directory exists
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+      when: install_kubernetes | bool
+
+    - name: Configure Kubernetes apt repository
+      shell: |
+        set -euo pipefail
+        curl -fsSL "https://pkgs.k8s.io/core:/stable:/{{ kubernetes_version_channel }}/deb/Release.key" \
+          | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+        echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/{{ kubernetes_version_channel }}/deb/ /" \
+          > /etc/apt/sources.list.d/kubernetes.list
+      args:
+        executable: /bin/bash
+      when: install_kubernetes | bool
+
+    - name: Install Kubernetes packages
+      apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: present
+        update_cache: true
+      when: install_kubernetes | bool
+
+    - name: Hold Kubernetes package versions
+      command: apt-mark hold kubelet kubeadm kubectl
+      when: install_kubernetes | bool
+
+    - name: Ensure kubelet is enabled and running
+      service:
+        name: kubelet
+        state: started
+        enabled: true
+      when: install_kubernetes | bool
+
+    - name: Create app directory
+      file:
+        path: /opt/yeahmusic
+        state: directory
+
+    - name: Clone repository
+      git:
+        repo: "{{ repo_url }}"
+        dest: /opt/yeahmusic/repo
+        version: "{{ repo_ref | default('main') }}"
+
+    - name: Run docker compose up
+      shell: |
+        set -e
+        cd /opt/yeahmusic/repo
+        docker compose up -d --build
+      args:
+        executable: /bin/bash
+

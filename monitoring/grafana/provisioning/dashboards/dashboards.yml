@@ -1,0 +1,12 @@
+apiVersion: 1
+
+providers:
+  - name: "YeahMusic Dashboards"
+    orgId: 1
+    folder: "YeahMusic"
+    type: file
+    disableDeletion: true
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards
+
