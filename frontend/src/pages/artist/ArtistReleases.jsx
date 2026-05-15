@@ -20,11 +20,11 @@ export default function ArtistReleases() {
   );
 
   return (
-    <div className="flex-1 bg-yeah-bg overflow-y-auto no-scrollbar pb-32">
+    <div className="flex-1 bg-yeah-bg overflow-y-auto no-scrollbar pb-48 md:pb-32">
       <TopNav />
-      <div className="px-8 py-6">
-        <h1 className="text-3xl font-bold text-white mb-6">Release Manager</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6">Release Manager</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {artistReleases.map((track) => (
             <div key={track.id} className="bg-[#151515] border border-gray-800 rounded-2xl p-4">
               <img src={getTrackCover(track)} alt={track.title} className="w-full h-40 object-cover rounded-xl" />
@@ -142,9 +142,9 @@ function EditReleaseModal({ track, userId, isLoading, onClose, onSave }) {
     <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
       <form
         onSubmit={submit}
-        className="w-full max-w-5xl max-h-[90vh] overflow-y-auto no-scrollbar bg-[#141414] border border-gray-800 rounded-2xl"
+        className="w-full max-w-5xl max-h-[92vh] overflow-y-auto no-scrollbar bg-[#141414] border border-gray-800 rounded-2xl"
       >
-        <div className="sticky top-0 bg-[#141414] border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-[#141414] border-b border-gray-800 px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
           <div>
             <h2 className="text-xl font-bold text-white">Edit Release</h2>
             <p className="text-sm text-gray-400">{track.artist}</p>
@@ -159,7 +159,7 @@ function EditReleaseModal({ track, userId, isLoading, onClose, onSave }) {
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6">
             <div>
               <img src={coverPreview} alt="" className="w-full aspect-square rounded-xl object-cover mb-4" />
@@ -198,14 +198,14 @@ function EditReleaseModal({ track, userId, isLoading, onClose, onSave }) {
           </div>
         </div>
 
-        <div className="sticky bottom-0 bg-[#141414] border-t border-gray-800 px-6 py-4 flex justify-end gap-3">
+        <div className="sticky bottom-0 bg-[#141414] border-t border-gray-800 px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:justify-end gap-3">
           <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg bg-[#222] text-white">
             Cancel
           </button>
           <button
             type="submit"
             disabled={isLoading || !form.title}
-            className="px-5 py-2 rounded-lg bg-yeah-accent text-black font-bold inline-flex items-center gap-2 disabled:opacity-60"
+            className="px-5 py-2 rounded-lg bg-yeah-accent text-black font-bold inline-flex items-center justify-center gap-2 disabled:opacity-60"
           >
             <Save size={17} /> Save
           </button>

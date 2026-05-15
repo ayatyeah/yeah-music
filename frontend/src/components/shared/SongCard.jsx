@@ -25,7 +25,7 @@ export default function SongCard({ song }) {
     <motion.div
       whileHover={{ backgroundColor: '#282828', y: -4 }}
       onClick={handlePlayClick}
-      className={`bg-[#181818] p-4 rounded-xl cursor-pointer group transition-all duration-300 relative border ${
+      className={`bg-[#181818] p-3 sm:p-4 rounded-xl cursor-pointer group transition-all duration-300 relative border ${
         isThisPlaying ? 'border-yeah-accent/50' : 'border-transparent'
       }`}
     >
@@ -93,7 +93,7 @@ export default function SongCard({ song }) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: isThisPlaying ? 1 : 0, y: isThisPlaying ? 0 : 10 }}
           whileHover={{ scale: 1.1 }}
-          className="absolute bottom-2 right-2 w-12 h-12 rounded-full bg-yeah-accent flex items-center justify-center group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-xl"
+          className="absolute bottom-2 right-2 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-yeah-accent flex items-center justify-center opacity-100 md:opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-xl"
         >
           {isThisPlaying && isPlaying ? (
             <Pause size={24} className="text-black" fill="black" />
@@ -103,7 +103,7 @@ export default function SongCard({ song }) {
         </motion.button>
       </div>
 
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-start gap-2">
         <div className="min-w-0">
           <h3 className={`font-bold truncate ${isThisPlaying ? 'text-yeah-accent' : 'text-white'}`}>
             {song.title}

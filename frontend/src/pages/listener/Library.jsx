@@ -19,27 +19,27 @@ export default function Library() {
   };
 
   return (
-    <div className="flex-1 bg-yeah-bg overflow-y-auto no-scrollbar pb-32">
+    <div className="flex-1 bg-yeah-bg overflow-y-auto no-scrollbar pb-48 md:pb-32">
       <TopNav />
-      <div className="px-8 py-6">
-        <h1 className="text-3xl font-bold text-white mb-6">Your Library</h1>
+      <div className="px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6">Your Library</h1>
 
-        <div className="bg-[#141414] border border-gray-800 rounded-2xl p-6 mb-8">
+        <div className="bg-[#141414] border border-gray-800 rounded-2xl p-4 sm:p-6 mb-8">
           <h2 className="text-lg font-semibold text-white mb-4">Create Playlist</h2>
-          <form onSubmit={handleCreate} className="flex gap-3">
+          <form onSubmit={handleCreate} className="flex flex-col sm:flex-row gap-3">
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder="Playlist name"
               className="flex-1 bg-[#1c1c1c] text-white rounded-lg px-4 py-3 border border-gray-800 focus:border-yeah-accent outline-none"
             />
-            <button className="bg-yeah-accent text-black px-6 rounded-lg font-semibold">Create</button>
+            <button className="bg-yeah-accent text-black px-6 py-3 rounded-lg font-semibold">Create</button>
           </form>
         </div>
 
         <section>
           <h2 className="text-xl font-semibold text-white mb-4">Playlists</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
             {playlists.map((playlist) => (
               <Link
                 key={playlist.id}
@@ -59,7 +59,7 @@ export default function Library() {
           {likedTracks.length === 0 ? (
             <p className="text-gray-500">No liked songs yet.</p>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
               {likedTracks.map((song) => (
                 <SongCard key={song.id} song={song} />
               ))}

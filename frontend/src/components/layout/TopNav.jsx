@@ -9,9 +9,9 @@ export default function TopNav() {
   const addToast = useNotificationStore((state) => state.addToast);
 
   return (
-    <div className="sticky top-0 h-16 bg-yeah-bg/80 backdrop-blur-md flex items-center justify-between px-8 z-40">
+    <div className="sticky top-0 min-h-16 bg-yeah-bg/90 backdrop-blur-md flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-3 z-40">
       {/* Navigation Arrows */}
-      <div className="flex items-center gap-4">
+      <div className="hidden sm:flex items-center gap-3">
         <button
           onClick={() => navigate(-1)}
           className="w-8 h-8 rounded-full bg-black/60 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
@@ -27,19 +27,19 @@ export default function TopNav() {
       </div>
 
       {/* Search Bar */}
-      <div className="flex-1 max-w-md ml-8">
+      <div className="flex-1 max-w-md sm:ml-4">
         <div className="relative group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-white transition-colors" size={20} />
           <input 
             type="text" 
-            placeholder="What do you want to listen to?" 
+            placeholder="Search music"
             className="w-full bg-[#242424] text-white text-sm rounded-full py-2.5 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all hover:bg-[#2a2a2a]"
           />
         </div>
       </div>
 
       {/* Profile & Notifications */}
-      <div className="flex items-center gap-6 ml-8">
+      <div className="flex items-center gap-3 sm:gap-5 sm:ml-4">
         <button
           onClick={() =>
             addToast({
@@ -60,7 +60,7 @@ export default function TopNav() {
         </button>
         <button
           onClick={() => navigate('/profile')}
-          className="flex items-center gap-2 bg-black/60 hover:bg-[#282828] rounded-full p-1 pr-3 transition-colors"
+          className="flex items-center gap-2 bg-black/60 hover:bg-[#282828] rounded-full p-1 sm:pr-3 transition-colors"
         >
           <img 
             src={
@@ -70,7 +70,7 @@ export default function TopNav() {
             alt="Profile" 
             className="w-7 h-7 rounded-full object-cover"
           />
-          <span className="text-sm font-bold text-white">{user?.username || 'YeahMusic'}</span>
+          <span className="hidden sm:block max-w-28 truncate text-sm font-bold text-white">{user?.username || 'YeahMusic'}</span>
         </button>
       </div>
     </div>

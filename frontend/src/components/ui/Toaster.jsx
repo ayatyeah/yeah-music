@@ -21,13 +21,13 @@ export default function Toaster() {
   }, [toasts, removeToast]);
 
   return (
-    <div className="fixed top-4 right-4 z-[100] flex flex-col gap-3">
+    <div className="fixed top-3 left-3 right-3 sm:left-auto sm:top-4 sm:right-4 z-[100] flex flex-col gap-3">
       {toasts.map((toast) => {
         const Icon = icons[toast.type] || Info;
         return (
           <div
             key={toast.id}
-            className="w-80 bg-[#141414]/95 border border-white/10 backdrop-blur-xl rounded-xl p-4 shadow-2xl"
+            className="w-full sm:w-80 bg-[#141414]/95 border border-white/10 backdrop-blur-xl rounded-xl p-4 shadow-2xl"
           >
             <div className="flex items-start gap-3">
               <div className={`mt-1 ${toast.type === 'success' ? 'text-yeah-accent' : 'text-gray-400'}`}>

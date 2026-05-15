@@ -111,14 +111,14 @@ export default function ArtistAnalytics() {
   const metricHistory = useMetricHistory(metrics);
 
   return (
-    <div className="flex-1 bg-yeah-bg overflow-y-auto no-scrollbar pb-32">
+    <div className="flex-1 bg-yeah-bg overflow-y-auto no-scrollbar pb-48 md:pb-32">
       <TopNav />
-      <div className="px-8 py-6">
-        <h1 className="text-3xl font-bold text-white mb-6">Analytics & Monitoring</h1>
+      <div className="px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6">Analytics & Monitoring</h1>
 
         <MetricGrid keys={['totalStreams', 'monthlyListeners', 'activeStreams', 'uploads']} metrics={metrics} history={metricHistory} variant="stat" />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-10">
           <Panel title="Most Played Tracks">
             {topTracks.length === 0 ? (
               <p className="text-gray-500 text-sm">No tracks yet.</p>
@@ -205,7 +205,7 @@ function MetricSection({ title, keys, metrics, history }) {
 
 function MetricGrid({ keys, metrics, history, variant = 'health' }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
       {keys.map((key) => (
         <MetricCard key={key} metric={metrics[key]} history={history[key]} variant={variant} />
       ))}
@@ -219,7 +219,7 @@ function MetricCard({ metric, history = [], variant = 'health' }) {
   const isStat = variant === 'stat';
 
   return (
-    <div className="bg-[#151515] border border-gray-800 rounded-2xl p-6">
+    <div className="bg-[#151515] border border-gray-800 rounded-2xl p-4 sm:p-6">
       <div className="flex items-center justify-between gap-3">
         {isStat ? (
           <p className="text-gray-400 text-sm">{metric.title}</p>
@@ -251,7 +251,7 @@ function MetricCard({ metric, history = [], variant = 'health' }) {
       </div>
 
       {isStat ? (
-        <div className="text-3xl font-bold text-white mt-2">{metric.displayValue}</div>
+        <div className="text-2xl sm:text-3xl font-bold text-white mt-2 break-words">{metric.displayValue}</div>
       ) : (
         <p className="text-white font-semibold text-right mt-4 truncate">{metric.displayValue}</p>
       )}
@@ -338,7 +338,7 @@ function formatMetricNumber(value) {
 
 function Panel({ title, children }) {
   return (
-    <div className="bg-[#151515] border border-gray-800 rounded-2xl p-6">
+    <div className="bg-[#151515] border border-gray-800 rounded-2xl p-4 sm:p-6">
       <h2 className="text-lg font-semibold text-white mb-4">{title}</h2>
       {children}
     </div>

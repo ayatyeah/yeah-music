@@ -43,10 +43,10 @@ export default function Search() {
   const visiblePlaylists = activeTab === 'all' || activeTab === 'playlists' ? results.playlists : [];
 
   return (
-    <div className="flex-1 bg-yeah-bg overflow-y-auto no-scrollbar pb-32">
+    <div className="flex-1 bg-yeah-bg overflow-y-auto no-scrollbar pb-48 md:pb-32">
       <TopNav />
-      <div className="px-8 py-6">
-        <h1 className="text-3xl font-bold text-white mb-4">Search</h1>
+      <div className="px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-4">Search</h1>
         <input
           value={query}
           onChange={(event) => handleSearch(event.target.value)}
@@ -54,12 +54,12 @@ export default function Search() {
           className="w-full max-w-xl bg-[#1c1c1c] text-white rounded-xl px-4 py-3 border border-gray-800 focus:border-yeah-accent outline-none"
         />
 
-        <div className="flex gap-2 mt-4">
+        <div className="flex gap-2 mt-4 overflow-x-auto no-scrollbar pb-1">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-full text-sm font-medium ${
+              className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium ${
                 activeTab === tab ? 'bg-yeah-accent text-black' : 'bg-[#1c1c1c] text-gray-300'
               }`}
             >
@@ -76,7 +76,7 @@ export default function Search() {
 
         <div className="mt-8">
           <Section title="Songs" items={visibleSongs.length}>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
               {visibleSongs.map((song) => (
                 <SongCard key={song.id} song={song} />
               ))}
@@ -84,7 +84,7 @@ export default function Search() {
           </Section>
 
           <Section title="Artists" items={visibleArtists.length}>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {visibleArtists.map((artist) => (
                 <div key={artist.id} className="bg-[#151515] p-4 rounded-xl border border-gray-800">
                   <img src={artist.avatar} alt={artist.name} className="w-14 h-14 rounded-full" />
@@ -96,7 +96,7 @@ export default function Search() {
           </Section>
 
           <Section title="Playlists" items={visiblePlaylists.length}>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {visiblePlaylists.map((playlist) => (
                 <Link
                   key={playlist.id}

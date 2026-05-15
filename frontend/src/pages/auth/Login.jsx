@@ -23,7 +23,7 @@ export default function Login() {
   };
 
   return (
-    <div className="h-screen w-full flex bg-black">
+    <div className="min-h-screen w-full flex bg-black">
       {/* Left: Animated Brand Panel */}
       <div className="hidden lg:flex w-1/2 relative overflow-hidden items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-yeah-accent/20 to-black z-10" />
@@ -39,13 +39,13 @@ export default function Login() {
       </div>
 
       {/* Right: Glassmorphism Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center bg-yeah-bg p-8 relative">
-        <div className="w-full max-w-md backdrop-blur-xl bg-white/[0.02] border border-white/10 p-10 rounded-2xl shadow-2xl">
-          <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
-          <p className="text-gray-400 mb-8">Sign in to your account</p>
+      <div className="w-full lg:w-1/2 flex items-center justify-center bg-yeah-bg px-4 py-6 sm:p-8 relative">
+        <div className="w-full max-w-md backdrop-blur-xl bg-white/[0.02] border border-white/10 p-5 sm:p-10 rounded-2xl shadow-2xl">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Welcome Back</h2>
+          <p className="text-sm sm:text-base text-gray-400 mb-6 sm:mb-8">Sign in to your account</p>
 
           {/* Role Toggle */}
-          <div className="flex bg-[#121212] rounded-lg p-1 mb-8">
+          <div className="flex bg-[#121212] rounded-lg p-1 mb-6 sm:mb-8">
             <button 
               onClick={() => setIsArtist(false)}
               className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${!isArtist ? 'bg-[#282828] text-white shadow' : 'text-gray-500 hover:text-gray-300'}`}

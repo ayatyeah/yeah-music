@@ -136,14 +136,14 @@ export default function ArtistUpload() {
   };
 
   return (
-    <div className="flex-1 bg-yeah-bg overflow-y-auto no-scrollbar pb-32">
+    <div className="flex-1 bg-yeah-bg overflow-y-auto no-scrollbar pb-48 md:pb-32">
       <TopNav />
-      <div className="px-8 py-6">
-        <h1 className="text-3xl font-bold text-white mb-6">Upload Manager</h1>
+      <div className="px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6">Upload Manager</h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-5 sm:gap-8">
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="bg-[#141414] border border-gray-800 rounded-2xl p-6">
+            <div className="bg-[#141414] border border-gray-800 rounded-2xl p-4 sm:p-6">
               <h2 className="text-lg font-semibold text-white mb-4">Track Details</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input label="Title" value={form.title} onChange={(value) => updateField('title', value)} />
@@ -153,7 +153,7 @@ export default function ArtistUpload() {
               </div>
             </div>
 
-            <div className="bg-[#141414] border border-gray-800 rounded-2xl p-6">
+            <div className="bg-[#141414] border border-gray-800 rounded-2xl p-4 sm:p-6">
               <h2 className="text-lg font-semibold text-white mb-4">Lyrics</h2>
               <LyricsEditor
                 value={form.lyrics}
@@ -162,9 +162,9 @@ export default function ArtistUpload() {
               />
             </div>
 
-            <div className="bg-[#141414] border border-gray-800 rounded-2xl p-6">
+            <div className="bg-[#141414] border border-gray-800 rounded-2xl p-4 sm:p-6">
               <h2 className="text-lg font-semibold text-white mb-4">Cover Upload</h2>
-              <label className="border-2 border-dashed border-gray-700 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:border-yeah-accent/50 transition-colors">
+              <label className="border-2 border-dashed border-gray-700 rounded-2xl p-5 sm:p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:border-yeah-accent/50 transition-colors">
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
@@ -177,9 +177,9 @@ export default function ArtistUpload() {
               </label>
             </div>
 
-            <div className="bg-[#141414] border border-gray-800 rounded-2xl p-6">
+            <div className="bg-[#141414] border border-gray-800 rounded-2xl p-4 sm:p-6">
               <h2 className="text-lg font-semibold text-white mb-4">Audio Upload</h2>
-              <label className="border-2 border-dashed border-gray-700 rounded-2xl p-10 flex flex-col items-center justify-center text-center cursor-pointer hover:border-yeah-accent/50 transition-colors">
+              <label className="border-2 border-dashed border-gray-700 rounded-2xl p-5 sm:p-10 flex flex-col items-center justify-center text-center cursor-pointer hover:border-yeah-accent/50 transition-colors">
                 <input
                   type="file"
                   accept="audio/*"
@@ -220,7 +220,7 @@ export default function ArtistUpload() {
           </form>
 
           <div className="space-y-6">
-            <div className="bg-[#141414] border border-gray-800 rounded-2xl p-6">
+            <div className="bg-[#141414] border border-gray-800 rounded-2xl p-4 sm:p-6">
               <h2 className="text-lg font-semibold text-white mb-4">Release Preview</h2>
               <div className="flex items-center gap-4">
                 <img src={coverPreview} alt="Cover" className="w-20 h-20 rounded-lg object-cover" />
@@ -231,7 +231,7 @@ export default function ArtistUpload() {
               </div>
             </div>
 
-            <div className="bg-[#141414] border border-gray-800 rounded-2xl p-6">
+            <div className="bg-[#141414] border border-gray-800 rounded-2xl p-4 sm:p-6">
               <h2 className="text-lg font-semibold text-white mb-4">Processing Pipeline</h2>
               <div className="space-y-4 text-sm text-gray-400">
                 <PipelineStep icon={FileAudio} label="Upload to ingest-service" active={state === 'uploading'} />

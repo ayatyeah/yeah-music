@@ -6,23 +6,23 @@ export default function History() {
   const { history } = useDataStore();
 
   return (
-    <div className="flex-1 bg-yeah-bg overflow-y-auto no-scrollbar pb-32">
+    <div className="flex-1 bg-yeah-bg overflow-y-auto no-scrollbar pb-48 md:pb-32">
       <TopNav />
-      <div className="px-8 py-6">
-        <h1 className="text-3xl font-bold text-white mb-6">Listening History</h1>
+      <div className="px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6">Listening History</h1>
 
         {history.length === 0 ? (
           <p className="text-gray-500">No listening history yet.</p>
         ) : (
           <div className="space-y-4">
             {history.map((track) => (
-              <div key={track.id} className="flex items-center gap-4 bg-[#151515] border border-gray-800 rounded-xl p-4">
-                <img src={getTrackCover(track)} alt={track.title} className="w-14 h-14 rounded-md" />
-                <div className="flex-1">
+              <div key={track.id} className="flex items-center gap-3 sm:gap-4 bg-[#151515] border border-gray-800 rounded-xl p-3 sm:p-4">
+                <img src={getTrackCover(track)} alt={track.title} className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-md object-cover" />
+                <div className="flex-1 min-w-0">
                   <h3 className="text-white font-semibold">{track.title}</h3>
                   <p className="text-gray-400 text-sm">{track.artist}</p>
                 </div>
-                <div className="text-xs text-gray-500">{new Date(track.lastPlayedAt).toLocaleString()}</div>
+                <div className="hidden sm:block text-xs text-gray-500">{new Date(track.lastPlayedAt).toLocaleString()}</div>
               </div>
             ))}
           </div>

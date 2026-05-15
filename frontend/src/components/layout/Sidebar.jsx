@@ -23,8 +23,11 @@ export default function Sidebar() {
     { icon: BarChart2, label: 'Monitoring', path: '/artist/analytics' },
   ];
 
+  const mobileNav = user?.role === 'artist' ? [...listenerNav.slice(0, 3), ...artistNav.slice(0, 2)] : listenerNav;
+
   return (
-    <div className="w-64 bg-black h-full flex flex-col p-6 hidden md:flex border-r border-gray-800/50">
+    <>
+    <div className="w-64 bg-black h-full flex-col p-6 hidden md:flex border-r border-gray-800/50">
       <div className="text-white font-bold text-2xl tracking-tighter mb-10 flex items-center gap-2">
         <img src="/logo.png" alt="YeahMusic Logo" className="w-8 h-8 object-contain" />
         YeahMusic
@@ -69,5 +72,26 @@ export default function Sidebar() {
         </button>
       </div>
     </div>
+
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden h-16 bg-black/95 border-t border-gray-800 backdrop-blur-xl px-2">
+      <div className="grid h-full grid-cols-5">
+        {mobileNav.slice(0, 5).map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <Link
+              key={item.label}
+              to={item.path}
+              className={`min-w-0 flex flex-col items-center justify-center gap-1 rounded-lg text-[10px] font-medium ${
+                isActive ? 'text-yeah-accent' : 'text-gray-400'
+              }`}
+            >
+              <item.icon size={20} />
+              <span className="max-w-full truncate">{item.label.replace('Your ', '').replace('Upload Track', 'Upload')}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+    </>
   );
 }

@@ -240,24 +240,24 @@ export default function PlayerBar() {
   const coverUrl = getTrackCover(currentTrack);
 
   return (
-    <div className="h-24 bg-yeah-surface border-t border-gray-800 px-6 flex items-center justify-between fixed bottom-0 w-full z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
-      <div className="flex items-center gap-4 w-1/3">
-        <img src={coverUrl} alt="Cover" className="w-14 h-14 rounded-md shadow-lg" />
-        <div>
-          <h4 className="text-white font-medium text-sm">{currentTrack.title}</h4>
-          <p className="text-gray-400 text-xs">{currentTrack.artist}</p>
+    <div className="fixed bottom-16 md:bottom-0 w-full z-50 bg-yeah-surface border-t border-gray-800 px-3 sm:px-6 py-3 md:h-24 md:flex md:items-center md:justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+      <div className="flex items-center gap-3 md:gap-4 md:w-1/3 min-w-0">
+        <img src={coverUrl} alt="Cover" className="w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-md object-cover shadow-lg" />
+        <div className="min-w-0">
+          <h4 className="text-white font-medium text-sm truncate">{currentTrack.title}</h4>
+          <p className="text-gray-400 text-xs truncate">{currentTrack.artist}</p>
         </div>
-        <button onClick={() => likeTrack(currentTrack.id)} className="ml-4 transition-transform active:scale-75">
+        <button onClick={() => likeTrack(currentTrack.id)} className="ml-auto md:ml-4 transition-transform active:scale-75">
           <Heart size={20} className={isLiked ? 'text-yeah-accent fill-yeah-accent' : 'text-gray-400'} />
         </button>
       </div>
 
-      <div className="flex flex-col items-center justify-center w-1/3 gap-2">
-        <div className="flex items-center gap-6">
+      <div className="mt-3 md:mt-0 flex flex-col items-center justify-center md:w-1/3 gap-2">
+        <div className="flex items-center gap-5 md:gap-6">
           <Shuffle
             size={20}
             onClick={toggleShuffle}
-            className={`cursor-pointer ${shuffle ? 'text-yeah-accent' : 'text-gray-400 hover:text-white'}`}
+            className={`hidden sm:block cursor-pointer ${shuffle ? 'text-yeah-accent' : 'text-gray-400 hover:text-white'}`}
           />
           <SkipBack size={24} className="text-gray-400 hover:text-white cursor-pointer" onClick={previousTrack} />
           <button
@@ -274,7 +274,7 @@ export default function PlayerBar() {
           <Repeat
             size={20}
             onClick={cycleRepeat}
-            className={`cursor-pointer ${repeatMode !== 'off' ? 'text-yeah-accent' : 'text-gray-400 hover:text-white'}`}
+            className={`hidden sm:block cursor-pointer ${repeatMode !== 'off' ? 'text-yeah-accent' : 'text-gray-400 hover:text-white'}`}
           />
         </div>
         <div className="w-full flex items-center gap-2 max-w-md">
@@ -293,7 +293,7 @@ export default function PlayerBar() {
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-3 w-1/3">
+      <div className="hidden md:flex items-center justify-end gap-3 w-1/3">
         <Volume2 size={20} className="text-gray-400" />
         <input
           type="range"
