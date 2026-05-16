@@ -4,7 +4,14 @@ metadata:
   name: api-gateway
   namespace: yeahmusic
 spec:
-  replicas: 1
+  replicas: 2
+  revisionHistoryLimit: 5
+  minReadySeconds: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
       app: api-gateway
@@ -46,6 +53,12 @@ spec:
               port: 4010
             initialDelaySeconds: 3
             periodSeconds: 5
+          startupProbe:
+            httpGet:
+              path: /readyz
+              port: 4010
+            failureThreshold: 30
+            periodSeconds: 3
           livenessProbe:
             httpGet:
               path: /healthz

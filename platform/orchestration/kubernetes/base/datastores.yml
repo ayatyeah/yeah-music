@@ -1,6 +1,72 @@
 apiVersion: v1
 kind: Secret
 metadata:
+  name: auth-db-credentials
+  namespace: yeahmusic
+stringData:
+  POSTGRES_DB: auth
+  POSTGRES_USER: auth
+  POSTGRES_PASSWORD: authpass
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: auth-db-pvc
+  namespace: yeahmusic
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-db
+  namespace: yeahmusic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-db
+  template:
+    metadata:
+      labels:
+        app: auth-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: auth-db-credentials
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: auth-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-db
+  namespace: yeahmusic
+spec:
+  selector:
+    app: auth-db
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: v1
+kind: Secret
+metadata:
   name: music-db-credentials
   namespace: yeahmusic
 stringData:

@@ -1,8 +1,10 @@
 name: Deploy to Kubernetes
 
 on:
-  push:
-    branches: [ main ]
+  workflow_run:
+    workflows: ["Build and Push Images"]
+    types: [completed]
+    branches: [master, main]
   workflow_dispatch: {}
 
 permissions:
@@ -10,7 +12,11 @@ permissions:
 
 jobs:
   deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-k8s-production
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
 
@@ -25,17 +31,45 @@ jobs:
           mkdir -p $HOME/.kube
           mv kubeconfig $HOME/.kube/config
 
-      - name: Update deployment images
+      - name: Update deployment images and verify rollout
         env:
           KUBECONFIG: $HOME/.kube/config
         run: |
-          set -e
+          set -euo pipefail
           NAMESPACE=yeahmusic
-          kubectl set image deployment/api-gateway api-gateway=ghcr.io/${{ github.repository_owner }}/api-gateway:${{ github.sha }} -n $NAMESPACE || true
-          kubectl set image deployment/auth-service auth-service=ghcr.io/${{ github.repository_owner }}/auth-service:${{ github.sha }} -n $NAMESPACE || true
-          kubectl set image deployment/music-service music-service=ghcr.io/${{ github.repository_owner }}/music-service:${{ github.sha }} -n $NAMESPACE || true
-          kubectl set image deployment/notification-service notification-service=ghcr.io/${{ github.repository_owner }}/notification-service:${{ github.sha }} -n $NAMESPACE || true
-          kubectl set image deployment/playlist-service playlist-service=ghcr.io/${{ github.repository_owner }}/playlist-service:${{ github.sha }} -n $NAMESPACE || true
-          kubectl set image deployment/upload-service upload-service=ghcr.io/${{ github.repository_owner }}/upload-service:${{ github.sha }} -n $NAMESPACE || true
-          # Frontend may be served via Ingress / separate deployment. If present, update its image name below.
-          kubectl set image deployment/frontend frontend=ghcr.io/${{ github.repository_owner }}/frontend:${{ github.sha }} -n $NAMESPACE || true
+
+          DEPLOYMENTS=(
+            "api-gateway:api-gateway"
+            "auth-service:auth-service"
+            "music-service:music-service"
+            "notification-service:notification-service"
+            "playlist-service:playlist-service"
+            "upload-service:upload-service"
+            "frontend:frontend"
+          )
+
+          updated=()
+          for entry in "${DEPLOYMENTS[@]}"; do
+            dep="${entry%%:*}"
+            container="${entry##*:}"
+
+            if kubectl get deployment "$dep" -n "$NAMESPACE" >/dev/null 2>&1; then
+              image="ghcr.io/${{ github.repository_owner }}/$container:${{ github.sha }}"
+              kubectl set image deployment/"$dep" "$container"="$image" -n "$NAMESPACE"
+              updated+=("$dep")
+            fi
+          done
+
+          if [ "${#updated[@]}" -eq 0 ]; then
+            echo "No matching deployments found in namespace $NAMESPACE"
+            exit 1
+          fi
+
+          for dep in "${updated[@]}"; do
+            if ! kubectl rollout status deployment/"$dep" -n "$NAMESPACE" --timeout=180s; then
+              echo "Rollout failed for $dep, rolling back"
+              kubectl rollout undo deployment/"$dep" -n "$NAMESPACE"
+              kubectl rollout status deployment/"$dep" -n "$NAMESPACE" --timeout=180s || true
+              exit 1
+            fi
+          done

@@ -19,3 +19,5 @@ Notes:
 # CI/CD
 
 Pipelines and automation scripts.
+
+- [Droplet deployment guide](./DROPLET_DEPLOY_GUIDE.md)

@@ -1,8 +1,10 @@
 name: Deploy to Docker Swarm
 
 on:
-  push:
-    branches: [ main ]
+  workflow_run:
+    workflows: ["Build and Push Images"]
+    types: [completed]
+    branches: [master, main]
   workflow_dispatch: {}
 
 permissions:
@@ -10,7 +12,11 @@ permissions:
 
 jobs:
   deploy-swarm:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-swarm-production
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
 
@@ -21,5 +27,28 @@ jobs:
 
       - name: Copy compose and deploy
         run: |
+          set -euo pipefail
           scp -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.SWARM_USER }}@${{ secrets.SWARM_HOST }}:/tmp/docker-compose.yml
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SWARM_USER }}@${{ secrets.SWARM_HOST }} "docker stack deploy -c /tmp/docker-compose.yml app || true"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SWARM_USER }}@${{ secrets.SWARM_HOST }} '
+            set -euo pipefail
+            docker stack deploy -c /tmp/docker-compose.yml app
+
+            failed=0
+            for svc in $(docker stack services app --format "{{.Name}}"); do
+              replicas=$(docker service ls --filter name="$svc" --format "{{.Replicas}}" | head -n 1)
+              running=$(echo "$replicas" | cut -d/ -f1)
+              desired=$(echo "$replicas" | cut -d/ -f2)
+              if [ "$running" != "$desired" ]; then
+                echo "Service $svc is unhealthy: $replicas"
+                failed=1
+              fi
+            done
+
+            if [ "$failed" -ne 0 ]; then
+              echo "Swarm health-check failed. Rolling back updated services."
+              for svc in $(docker stack services app --format "{{.Name}}"); do
+                docker service update --rollback "$svc" || true
+              done
+              exit 1
+            fi
+          '
