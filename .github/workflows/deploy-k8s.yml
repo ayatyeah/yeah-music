@@ -1,0 +1,41 @@
+name: Deploy to Kubernetes
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure kubeconfig
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > kubeconfig
+          mkdir -p $HOME/.kube
+          mv kubeconfig $HOME/.kube/config
+
+      - name: Update deployment images
+        env:
+          KUBECONFIG: $HOME/.kube/config
+        run: |
+          set -e
+          NAMESPACE=yeahmusic
+          kubectl set image deployment/api-gateway api-gateway=ghcr.io/${{ github.repository_owner }}/api-gateway:${{ github.sha }} -n $NAMESPACE || true
+          kubectl set image deployment/auth-service auth-service=ghcr.io/${{ github.repository_owner }}/auth-service:${{ github.sha }} -n $NAMESPACE || true
+          kubectl set image deployment/music-service music-service=ghcr.io/${{ github.repository_owner }}/music-service:${{ github.sha }} -n $NAMESPACE || true
+          kubectl set image deployment/notification-service notification-service=ghcr.io/${{ github.repository_owner }}/notification-service:${{ github.sha }} -n $NAMESPACE || true
+          kubectl set image deployment/playlist-service playlist-service=ghcr.io/${{ github.repository_owner }}/playlist-service:${{ github.sha }} -n $NAMESPACE || true
+          kubectl set image deployment/upload-service upload-service=ghcr.io/${{ github.repository_owner }}/upload-service:${{ github.sha }} -n $NAMESPACE || true
+          # Frontend may be served via Ingress / separate deployment. If present, update its image name below.
+          kubectl set image deployment/frontend frontend=ghcr.io/${{ github.repository_owner }}/frontend:${{ github.sha }} -n $NAMESPACE || true
