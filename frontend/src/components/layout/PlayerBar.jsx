@@ -250,6 +250,16 @@ export default function PlayerBar() {
         <button onClick={() => likeTrack(currentTrack.id)} className="ml-auto md:ml-4 transition-transform active:scale-75">
           <Heart size={20} className={isLiked ? 'text-yeah-accent fill-yeah-accent' : 'text-gray-400'} />
         </button>
+        <button
+          type="button"
+          onClick={toggleLyrics}
+          className={`md:hidden w-9 h-9 rounded-lg inline-flex items-center justify-center transition-colors ${
+            showLyrics ? 'bg-yeah-accent text-black' : 'bg-[#242424] text-gray-300'
+          }`}
+          aria-label="Lyrics"
+        >
+          <Mic2 size={18} />
+        </button>
       </div>
 
       <div className="mt-3 md:mt-0 flex flex-col items-center justify-center md:w-1/3 gap-2">

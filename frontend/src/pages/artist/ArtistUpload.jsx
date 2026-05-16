@@ -4,7 +4,7 @@ import TopNav from '../../components/layout/TopNav';
 import LyricsEditor from '../../components/artist/LyricsEditor';
 import { useDataStore } from '../../store/useDataStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { saveAudioFile } from '../../services/localMedia';
+import { uploadService } from '../../services/upload.service';
 import { getTrackCover } from '../../utils/cover';
 
 const initialForm = {
@@ -107,7 +107,7 @@ export default function ArtistUpload() {
     try {
       await simulateUpload();
       setState('processing');
-      const audioId = await saveAudioFile(audioFile);
+      const uploadedAudio = await uploadService.uploadTrack(audioFile);
       const coverDataUrl = coverFile ? await readFileAsDataUrl(coverFile) : '';
       await uploadTrack({
         title: form.title,
@@ -118,7 +118,8 @@ export default function ArtistUpload() {
         description: form.description,
         lyrics: form.lyrics,
         cover: coverDataUrl || '',
-        audioId,
+        audioId: uploadedAudio.audioId,
+        audioUrl: uploadedAudio.audioUrl,
         duration: '3:34',
       }, user?.id);
       setState('success');

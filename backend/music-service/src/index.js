@@ -34,6 +34,7 @@ const mapRowToTrack = (row) => ({
   lyrics: row.lyrics || '',
   cover: row.cover || '',
   audioId: row.audio_id || '',
+  audioUrl: row.audio_url || '',
   duration: row.duration || '',
   durationSec: row.duration_sec ?? null,
   plays: Number(row.plays || 0),
@@ -93,6 +94,7 @@ const ensureSchema = async () => {
       lyrics TEXT,
       cover TEXT,
       audio_id TEXT,
+      audio_url TEXT,
       duration TEXT,
       duration_sec INTEGER,
       plays INTEGER NOT NULL DEFAULT 0,
@@ -112,6 +114,8 @@ const ensureSchema = async () => {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+
+  await pool.query('ALTER TABLE tracks ADD COLUMN IF NOT EXISTS audio_url TEXT');
 
   const { rowCount } = await pool.query('SELECT 1 FROM tracks LIMIT 1');
   if (rowCount === 0) {
@@ -161,6 +165,7 @@ const persistTrack = async (payload, existingId) => {
     payload.lyrics || null,
     payload.cover || null,
     payload.audioId || null,
+    payload.audioUrl || null,
     payload.duration || null,
     durationSec,
     plays
@@ -168,9 +173,9 @@ const persistTrack = async (payload, existingId) => {
 
   const { rows } = await pool.query(
     `INSERT INTO tracks (
-      id, title, artist, artist_id, genre, album, description, lyrics, cover, audio_id, duration, duration_sec, plays, created_at, updated_at
+      id, title, artist, artist_id, genre, album, description, lyrics, cover, audio_id, audio_url, duration, duration_sec, plays, created_at, updated_at
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW()
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW()
     )
     ON CONFLICT (id) DO UPDATE SET
       title = EXCLUDED.title,
@@ -182,6 +187,7 @@ const persistTrack = async (payload, existingId) => {
       lyrics = EXCLUDED.lyrics,
       cover = EXCLUDED.cover,
       audio_id = EXCLUDED.audio_id,
+      audio_url = EXCLUDED.audio_url,
       duration = EXCLUDED.duration,
       duration_sec = EXCLUDED.duration_sec,
       plays = EXCLUDED.plays,

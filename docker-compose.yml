@@ -108,8 +108,12 @@ services:
       dockerfile: upload-service/Dockerfile
     environment:
       - PORT=4004
+      - MAX_UPLOAD_BYTES=52428800
+      - MEDIA_DIR=/var/lib/yeahmusic/uploads
     ports:
       - "127.0.0.1:4004:4004"
+    volumes:
+      - upload-media-data:/var/lib/yeahmusic/uploads
 
   analytics-service:
     restart: unless-stopped
@@ -187,3 +191,4 @@ services:
 volumes:
   auth-db-data:
   music-db-data:
+  upload-media-data:

@@ -55,6 +55,10 @@ services:
     image: yeahmusic/upload-service:latest
     environment:
       - PORT=4004
+      - MAX_UPLOAD_BYTES=52428800
+      - MEDIA_DIR=/var/lib/yeahmusic/uploads
+    volumes:
+      - upload_media_data:/var/lib/yeahmusic/uploads
     deploy:
       replicas: 2
       restart_policy:
@@ -155,4 +159,5 @@ configs:
 volumes:
   auth_db_data:
   music_db_data:
+  upload_media_data:
 

@@ -1,6 +1,10 @@
-import { mockApi } from './mockApi';
+import api from './api';
 
 export const uploadService = {
-  uploadTrack: (payload) =>
-    mockApi.execute(payload, { latencyMin: 1000, latencyMax: 3000, failureRate: 0.08 }),
+  uploadTrack: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/uploads/upload', formData);
+    return response.data;
+  },
 };

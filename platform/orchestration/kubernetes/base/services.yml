@@ -213,6 +213,13 @@ spec:
           env:
             - name: PORT
               value: "4004"
+            - name: MAX_UPLOAD_BYTES
+              value: "52428800"
+            - name: MEDIA_DIR
+              value: "/var/lib/yeahmusic/uploads"
+          volumeMounts:
+            - name: upload-media
+              mountPath: /var/lib/yeahmusic/uploads
           readinessProbe:
             httpGet: { path: /readyz, port: 4004 }
             initialDelaySeconds: 3
@@ -225,6 +232,10 @@ spec:
             httpGet: { path: /healthz, port: 4004 }
             initialDelaySeconds: 3
             periodSeconds: 10
+      volumes:
+        - name: upload-media
+          persistentVolumeClaim:
+            claimName: upload-media-pvc
 ---
 apiVersion: v1
 kind: Service
