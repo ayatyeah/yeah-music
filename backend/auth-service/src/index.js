@@ -17,6 +17,42 @@ const pool = new Pool({ connectionString: DATABASE_URL });
 
 const ensureSchema = async () => {
   await pool.query('CREATE EXTENSION IF NOT EXISTS pgcrypto');
+  const { rows: idColumns } = await pool.query(`
+    SELECT data_type
+    FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'users' AND column_name = 'id'
+    LIMIT 1
+  `);
+
+  if (idColumns[0] && idColumns[0].data_type !== 'uuid') {
+    await pool.query('BEGIN');
+    try {
+      await pool.query('ALTER TABLE users RENAME TO users_legacy_int_id');
+      await pool.query(`
+        CREATE TABLE users (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          username TEXT NOT NULL,
+          email TEXT NOT NULL UNIQUE,
+          password_hash TEXT NOT NULL,
+          role TEXT NOT NULL DEFAULT 'listener',
+          avatar TEXT,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+      `);
+      await pool.query(`
+        INSERT INTO users (username, email, password_hash, role, avatar, created_at)
+        SELECT username, email, password_hash, role, avatar, created_at
+        FROM users_legacy_int_id
+        ON CONFLICT (email) DO NOTHING
+      `);
+      await pool.query('DROP TABLE users_legacy_int_id');
+      await pool.query('COMMIT');
+    } catch (error) {
+      await pool.query('ROLLBACK');
+      throw error;
+    }
+  }
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
