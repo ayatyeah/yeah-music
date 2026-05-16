@@ -120,7 +120,7 @@ export default function ArtistUpload() {
         cover: coverDataUrl || '',
         audioId,
         duration: '3:34',
-      });
+      }, user?.id);
       setState('success');
       setForm(initialForm);
       setFileName('');

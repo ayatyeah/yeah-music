@@ -249,12 +249,13 @@ export const useDataStore = create(
         }));
       },
 
-      uploadTrack: async (trackData) => {
+      uploadTrack: async (trackData, userId) => {
         set((state) => ({ isLoading: true, error: null, uploadQueue: state.uploadQueue + 1 }));
         try {
           const newTrack = {
             ...trackData,
             id: `tr_${Date.now()}`,
+            artistId: userId || trackData.artistId,
             plays: 0,
             createdAt: new Date().toISOString(),
           };
@@ -282,6 +283,47 @@ export const useDataStore = create(
           useNotificationStore.getState().addToast({
             type: 'error',
             title: 'Upload failed',
+            message: error.message,
+          });
+          throw error;
+        }
+      },
+
+      deleteTrack: async (trackId, userId) => {
+        const original = get().library;
+        const target = original.find((track) => track.id === trackId);
+
+        if (!target) throw new Error('Track not found.');
+        if (userId && target.artistId && target.artistId !== userId) {
+          throw new Error('Only the track owner can delete this release.');
+        }
+
+        set({ isLoading: true, error: null });
+        try {
+          await musicService.deleteSong(trackId);
+          set((state) => ({
+            library: state.library.filter((track) => track.id !== trackId),
+            playlists: state.playlists.map((playlist) => ({
+              ...playlist,
+              tracks: playlist.tracks.filter((track) => track.id !== trackId),
+            })),
+            artists: buildArtistsFromLibrary(
+              state.library.filter((track) => track.id !== trackId),
+              state.artists
+            ),
+            isLoading: false,
+          }));
+          useNotificationStore.getState().addToast({
+            type: 'success',
+            title: 'Release deleted',
+            message: `"${target.title}" was removed.`,
+          });
+          return true;
+        } catch (error) {
+          set({ library: original, isLoading: false, error: error.message });
+          useNotificationStore.getState().addToast({
+            type: 'error',
+            title: 'Delete failed',
             message: error.message,
           });
           throw error;
