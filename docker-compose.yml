@@ -29,6 +29,7 @@ services:
       dockerfile: api-gateway/Dockerfile
     environment:
       - PORT=4010
+      - JSON_BODY_LIMIT=10mb
       - AUTH_URL=http://auth-service:4001
       - MUSIC_URL=http://music-service:4002
       - UPLOAD_URL=http://upload-service:4004
@@ -53,6 +54,7 @@ services:
       dockerfile: auth-service/Dockerfile
     environment:
       - PORT=4001
+      - JSON_BODY_LIMIT=10mb
       - AUTH_DATABASE_URL=postgres://auth:authpass@auth-db:5432/auth
       - AUTH_JWT_SECRET=${AUTH_JWT_SECRET:-dev-secret-change-me}
     ports:
@@ -80,6 +82,7 @@ services:
       dockerfile: music-service/Dockerfile
     environment:
       - PORT=4002
+      - JSON_BODY_LIMIT=10mb
       - MUSIC_DATABASE_URL=postgres://music:musicpass@music-db:5432/music
     ports:
       - "127.0.0.1:4002:4002"

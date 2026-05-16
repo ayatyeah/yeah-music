@@ -35,6 +35,8 @@ spec:
           env:
             - name: PORT
               value: "4010"
+            - name: JSON_BODY_LIMIT
+              value: "10mb"
             - name: AUTH_URL
               value: "http://auth-service:4001"
             - name: MUSIC_URL

@@ -7,6 +7,7 @@ services:
       - "4010:4010"
     environment:
       - PORT=4010
+      - JSON_BODY_LIMIT=10mb
       - AUTH_URL=http://auth-service:4001
       - MUSIC_URL=http://music-service:4002
       - UPLOAD_URL=http://upload-service:4004
@@ -22,6 +23,7 @@ services:
     image: yeahmusic/auth-service:latest
     environment:
       - PORT=4001
+      - JSON_BODY_LIMIT=10mb
       - AUTH_DATABASE_URL=postgres://auth:authpass@auth-db:5432/auth
       - AUTH_JWT_SECRET=${AUTH_JWT_SECRET:-dev-secret-change-me}
     deploy:
@@ -33,6 +35,7 @@ services:
     image: yeahmusic/music-service:latest
     environment:
       - PORT=4002
+      - JSON_BODY_LIMIT=10mb
       - MUSIC_DATABASE_URL=postgres://music:musicpass@music-db:5432/music
     deploy:
       replicas: 2

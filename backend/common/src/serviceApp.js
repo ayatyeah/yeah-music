@@ -7,7 +7,7 @@ const { createMetrics } = require('./index');
 function createServiceApp({ serviceName }) {
   const app = express();
   app.disable('x-powered-by');
-  app.use(express.json());
+  app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '5mb' }));
 
   const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
   app.use(
