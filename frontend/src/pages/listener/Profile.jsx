@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import TopNav from '../../components/layout/TopNav';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useNotificationStore } from '../../store/useNotificationStore';
 import { useDataStore } from '../../store/useDataStore';
 import { Upload, Edit2, Save, X } from 'lucide-react';
 import { fileToOptimizedAvatarDataUrl } from '../../utils/image';
@@ -16,6 +17,7 @@ export default function Profile() {
   });
 
   const followed = artists.filter((artist) => followedArtists.includes(artist.id));
+  const addToast = useNotificationStore((state) => state.addToast);
 
   const handleFileUpload = async (event) => {
     const file = event.target.files?.[0];

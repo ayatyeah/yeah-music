@@ -39,14 +39,14 @@ spec:
               value: "http://auth-service:4001"
             - name: MUSIC_URL
               value: "http://music-service:4002"
-            - name: PLAYLIST_URL
-              value: "http://playlist-service:4003"
             - name: UPLOAD_URL
               value: "http://upload-service:4004"
             - name: ANALYTICS_URL
               value: "http://analytics-service:4005"
             - name: NOTIFY_URL
               value: "http://notification-service:4006"
+            - name: AUTH_JWT_SECRET
+              value: "dev-secret-change-me"
           readinessProbe:
             httpGet:
               path: /readyz

@@ -64,23 +64,21 @@ curl -fsS http://127.0.0.1:4001/healthz
 
 ## 5) Validate databases (now separated)
 
-Project now has 3 PostgreSQL containers:
+Project has 2 independent PostgreSQL containers:
 - auth-db (accounts DB)
-- music-db-primary (songs DB primary)
-- music-db-replica (songs DB replica)
+- music-db (tracks and playlists DB)
 
 Check they are up:
 
 ```bash
-docker compose ps auth-db music-db-primary music-db-replica
+docker compose ps auth-db music-db
 ```
 
 Check DB list inside each container:
 
 ```bash
 docker compose exec -T auth-db psql -U auth -d auth -c "\l"
-docker compose exec -T music-db-primary psql -U music -d music -c "\l"
-docker compose exec -T music-db-replica psql -U music -d music -c "\l"
+docker compose exec -T music-db psql -U music -d music -c "\l"
 ```
 
 ## 6) Update to latest code (normal release flow)

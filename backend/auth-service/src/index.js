@@ -5,16 +5,21 @@ const jwt = require('jsonwebtoken');
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4001;
 const SERVICE = 'auth-service';
-const DATABASE_URL = process.env.AUTH_DATABASE_URL || process.env.DATABASE_URL || 'postgres://auth:authpass@auth-db:5432/auth';
+const DATABASE_URL =
+  process.env.AUTH_DATABASE_URL ||
+  process.env.AUTH_DB_URL ||
+  process.env.DATABASE_URL ||
+  'postgres://auth:authpass@auth-db:5432/auth';
 const JWT_SECRET = process.env.AUTH_JWT_SECRET || process.env.JWT_SECRET || 'dev-secret-change-me';
 
 const { app } = createServiceApp({ serviceName: SERVICE });
 const pool = new Pool({ connectionString: DATABASE_URL });
 
 const ensureSchema = async () => {
+  await pool.query('CREATE EXTENSION IF NOT EXISTS pgcrypto');
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       username TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
@@ -105,7 +110,14 @@ app.get('/me', async (req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-  req.log?.error({ err }, 'Auth service error');
+  try {
+    if (req && req.log && typeof req.log.error === 'function') req.log.error({ err }, 'Auth service error');
+  } catch (e) {
+    // ignore logging errors
+  }
+  // always print to console for debugging so we see the stack in container logs
+  // eslint-disable-next-line no-console
+  console.error('Auth service unhandled error:', err);
   if (res.headersSent) return next(err);
   res.status(500).json({ error: 'INTERNAL_ERROR', service: SERVICE });
 });

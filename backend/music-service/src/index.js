@@ -4,7 +4,9 @@ const { Pool } = require('pg');
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4002;
 const SERVICE = 'music-service';
 const DATABASE_URL =
-  process.env.MUSIC_DB_PRIMARY_URL || process.env.MUSIC_DB_URL || 'postgres://music:musicpass@music-db-primary:5432/music';
+  process.env.MUSIC_DATABASE_URL ||
+  process.env.MUSIC_DB_URL ||
+  'postgres://music:musicpass@music-db:5432/music';
 
 const { app } = createServiceApp({ serviceName: SERVICE });
 
@@ -14,6 +16,11 @@ const seedTracks = [
   { id: 't1', title: 'Yeah Vibes', artist: 'YeahAyat', duration: '3:03', durationSec: 183, plays: 0 },
   { id: 't2', title: 'SRE Nights', artist: 'Ops Crew', duration: '3:34', durationSec: 214, plays: 0 },
   { id: 't3', title: 'Latency Dreams', artist: 'Grafana', duration: '3:21', durationSec: 201, plays: 0 }
+];
+
+const seedPlaylists = [
+  { id: 'p1', name: 'SRE Focus', trackIds: ['t2', 't3'], isPublic: true },
+  { id: 'p2', name: 'Daily Mix', trackIds: ['t1', 't2'], isPublic: true }
 ];
 
 const mapRowToTrack = (row) => ({
@@ -33,6 +40,30 @@ const mapRowToTrack = (row) => ({
   createdAt: row.created_at,
   updatedAt: row.updated_at
 });
+
+const mapRowToPlaylist = (row) => ({
+  id: row.id,
+  name: row.name,
+  ownerId: row.owner_id || '',
+  trackIds: row.track_ids || [],
+  isPublic: row.is_public,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at
+});
+
+const isArtistRequest = (req) => String(req.headers['x-user-role'] || '').toLowerCase() === 'artist';
+
+const requireArtist = (req, res) => {
+  if (!req.headers['x-user-id']) {
+    res.status(401).json({ error: 'UNAUTHORIZED', message: 'Authentication is required.' });
+    return false;
+  }
+  if (!isArtistRequest(req)) {
+    res.status(403).json({ error: 'ARTIST_ROLE_REQUIRED', message: 'Only artists can modify music content.' });
+    return false;
+  }
+  return true;
+};
 
 const parseDurationToSeconds = (duration) => {
   if (!duration || typeof duration !== 'string') return null;
@@ -70,16 +101,39 @@ const ensureSchema = async () => {
     )
   `);
 
-  const { rowCount } = await pool.query('SELECT 1 FROM tracks LIMIT 1');
-  if (rowCount > 0) return;
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS playlists (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      owner_id TEXT,
+      track_ids TEXT[] NOT NULL DEFAULT '{}',
+      is_public BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
 
-  for (const track of seedTracks) {
-    await pool.query(
-      `INSERT INTO tracks (
-        id, title, artist, duration, duration_sec, plays, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) ON CONFLICT (id) DO NOTHING`,
-      [track.id, track.title, track.artist, track.duration, track.durationSec, track.plays]
-    );
+  const { rowCount } = await pool.query('SELECT 1 FROM tracks LIMIT 1');
+  if (rowCount === 0) {
+    for (const track of seedTracks) {
+      await pool.query(
+        `INSERT INTO tracks (
+          id, title, artist, duration, duration_sec, plays, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) ON CONFLICT (id) DO NOTHING`,
+        [track.id, track.title, track.artist, track.duration, track.durationSec, track.plays]
+      );
+    }
+  }
+
+  const { rowCount: playlistCount } = await pool.query('SELECT 1 FROM playlists LIMIT 1');
+  if (playlistCount === 0) {
+    for (const playlist of seedPlaylists) {
+      await pool.query(
+        `INSERT INTO playlists (id, name, track_ids, is_public, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, NOW(), NOW()) ON CONFLICT (id) DO NOTHING`,
+        [playlist.id, playlist.name, playlist.trackIds, playlist.isPublic]
+      );
+    }
   }
 };
 
@@ -150,6 +204,8 @@ app.get('/tracks', async (req, res, next) => {
 
 app.post('/tracks', async (req, res, next) => {
   try {
+    if (!requireArtist(req, res)) return;
+
     const payload = req.body || {};
     if (!payload.title || !payload.artist) {
       return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'title and artist are required.' });
@@ -168,6 +224,8 @@ app.post('/tracks', async (req, res, next) => {
 
 app.put('/tracks/:trackId', async (req, res, next) => {
   try {
+    if (!requireArtist(req, res)) return;
+
     const payload = req.body || {};
     // Enforce ownership: caller must be the original artist to update
     const actor = req.headers['x-user-id'] || payload.artistId || null;
@@ -191,6 +249,8 @@ app.put('/tracks/:trackId', async (req, res, next) => {
 
 app.delete('/tracks/:trackId', async (req, res, next) => {
   try {
+    if (!requireArtist(req, res)) return;
+
     const actor = req.headers['x-user-id'] || null;
     const { rows } = await pool.query('SELECT * FROM tracks WHERE id = $1 LIMIT 1', [req.params.trackId]);
     const existing = rows[0] || null;
@@ -201,6 +261,69 @@ app.delete('/tracks/:trackId', async (req, res, next) => {
 
     await pool.query('DELETE FROM tracks WHERE id = $1', [req.params.trackId]);
     res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/playlists', async (req, res, next) => {
+  try {
+    const actor = req.headers['x-user-id'] || null;
+    const { rows } = await pool.query(
+      'SELECT * FROM playlists WHERE is_public = TRUE OR owner_id = $1 ORDER BY created_at DESC, id DESC',
+      [actor]
+    );
+    res.json({ items: rows.map(mapRowToPlaylist) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/playlists', async (req, res, next) => {
+  try {
+    const actor = req.headers['x-user-id'] || null;
+    if (!actor) return res.status(401).json({ error: 'UNAUTHORIZED', message: 'Authentication is required.' });
+
+    const payload = req.body || {};
+    if (!payload.name) return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'name is required.' });
+
+    const playlistId = payload.id || `pl_${Date.now()}`;
+    const trackIds = Array.isArray(payload.trackIds) ? payload.trackIds.map(String) : [];
+    const { rows } = await pool.query(
+      `INSERT INTO playlists (id, name, owner_id, track_ids, is_public, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+       RETURNING *`,
+      [playlistId, payload.name, actor, trackIds, payload.isPublic !== false]
+    );
+    res.status(201).json({ item: mapRowToPlaylist(rows[0]) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/playlists/:id/tracks', async (req, res, next) => {
+  try {
+    const actor = req.headers['x-user-id'] || null;
+    if (!actor) return res.status(401).json({ error: 'UNAUTHORIZED', message: 'Authentication is required.' });
+
+    const { trackId } = req.body || {};
+    if (!trackId) return res.status(400).json({ error: 'trackId_required' });
+
+    const { rows } = await pool.query('SELECT * FROM playlists WHERE id = $1 LIMIT 1', [req.params.id]);
+    const playlist = rows[0] || null;
+    if (!playlist) return res.status(404).json({ error: 'NOT_FOUND' });
+    if (playlist.owner_id && playlist.owner_id !== actor) {
+      return res.status(403).json({ error: 'FORBIDDEN', message: 'You are not the owner of this playlist.' });
+    }
+
+    const { rows: updated } = await pool.query(
+      `UPDATE playlists
+       SET track_ids = array_append(track_ids, $2), updated_at = NOW()
+       WHERE id = $1
+       RETURNING *`,
+      [req.params.id, String(trackId)]
+    );
+    res.json({ ok: true, playlist: mapRowToPlaylist(updated[0]) });
   } catch (error) {
     next(error);
   }

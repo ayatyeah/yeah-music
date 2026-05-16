@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export const useTelemetryStore = create((set, get) => ({
+export const useTelemetryStore = create((set) => ({
   requestCount: 0,
   errorCount: 0,
   totalLatency: 0,

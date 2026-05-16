@@ -28,8 +28,10 @@ spec:
           env:
             - name: PORT
               value: "4001"
-            - name: AUTH_DB_URL
+            - name: AUTH_DATABASE_URL
               value: "postgres://auth:authpass@auth-db:5432/auth"
+            - name: AUTH_JWT_SECRET
+              value: "dev-secret-change-me"
           readinessProbe:
             httpGet: { path: /readyz, port: 4001 }
             initialDelaySeconds: 3
@@ -93,10 +95,8 @@ spec:
           env:
             - name: PORT
               value: "4002"
-            - name: MUSIC_DB_PRIMARY_URL
-              value: "postgres://music:musicpass@music-db-primary:5432/music"
-            - name: MUSIC_DB_REPLICA_URL
-              value: "postgres://music:musicpass@music-db-replica:5432/music"
+            - name: MUSIC_DATABASE_URL
+              value: "postgres://music:musicpass@music-db:5432/music"
           readinessProbe:
             httpGet: { path: /readyz, port: 4002 }
             initialDelaySeconds: 3

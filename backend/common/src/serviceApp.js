@@ -82,7 +82,28 @@ function createServiceApp({ serviceName }) {
   });
 
   app.use((err, req, res, next) => {
-    req.log.error({ err }, 'Unhandled error');
+    try {
+      if (req && req.log) {
+        try {
+          if (typeof req.log.error === 'function') {
+            req.log.error({ err }, 'Unhandled error');
+          } else {
+            // eslint-disable-next-line no-console
+            console.error('Unhandled error (no req.log.error fn)', err);
+          }
+        } catch (logErr) {
+          // eslint-disable-next-line no-console
+          console.error('Error while calling req.log.error', logErr, err);
+        }
+      } else {
+        // eslint-disable-next-line no-console
+        console.error('Unhandled error', err);
+      }
+    } catch (logErrOuter) {
+      // eslint-disable-next-line no-console
+      console.error('Error while logging unhandled error', logErrOuter, err);
+    }
+
     res.status(500).json({ error: 'INTERNAL_ERROR', service: serviceName });
   });
 

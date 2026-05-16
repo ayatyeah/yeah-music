@@ -31,10 +31,10 @@ services:
       - PORT=4010
       - AUTH_URL=http://auth-service:4001
       - MUSIC_URL=http://music-service:4002
-      - PLAYLIST_URL=http://playlist-service:4003
       - UPLOAD_URL=http://upload-service:4004
       - ANALYTICS_URL=http://analytics-service:4005
       - NOTIFY_URL=http://notification-service:4006
+      - AUTH_JWT_SECRET=${AUTH_JWT_SECRET:-dev-secret-change-me}
     ports:
       - "127.0.0.1:4010:4010"
     depends_on:
@@ -53,7 +53,8 @@ services:
       dockerfile: auth-service/Dockerfile
     environment:
       - PORT=4001
-      - AUTH_DB_URL=postgres://auth:authpass@auth-db:5432/auth
+      - AUTH_DATABASE_URL=postgres://auth:authpass@auth-db:5432/auth
+      - AUTH_JWT_SECRET=${AUTH_JWT_SECRET:-dev-secret-change-me}
     ports:
       - "127.0.0.1:4001:4001"
     depends_on:
@@ -79,13 +80,11 @@ services:
       dockerfile: music-service/Dockerfile
     environment:
       - PORT=4002
-      - MUSIC_DB_PRIMARY_URL=postgres://music:musicpass@music-db-primary:5432/music
-      - MUSIC_DB_REPLICA_URL=postgres://music:musicpass@music-db-replica:5432/music
+      - MUSIC_DATABASE_URL=postgres://music:musicpass@music-db:5432/music
     ports:
       - "127.0.0.1:4002:4002"
     depends_on:
-      - music-db-primary
-      - music-db-replica
+      - music-db
 
   playlist-service:
     restart: unless-stopped
@@ -131,7 +130,7 @@ services:
     ports:
       - "127.0.0.1:4006:4006"
 
-  music-db-primary:
+  music-db:
     restart: unless-stopped
     image: postgres:16-alpine
     environment:
@@ -141,19 +140,7 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
-      - music-db-primary-data:/var/lib/postgresql/data
-
-  music-db-replica:
-    restart: unless-stopped
-    image: postgres:16-alpine
-    environment:
-      - POSTGRES_DB=music
-      - POSTGRES_USER=music
-      - POSTGRES_PASSWORD=musicpass
-    ports:
-      - "127.0.0.1:5433:5432"
-    volumes:
-      - music-db-replica-data:/var/lib/postgresql/data
+      - music-db-data:/var/lib/postgresql/data
 
   prometheus:
     restart: unless-stopped
@@ -196,5 +183,4 @@ services:
 
 volumes:
   auth-db-data:
-  music-db-primary-data:
-  music-db-replica-data:
+  music-db-data:

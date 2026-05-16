@@ -9,10 +9,10 @@ services:
       - PORT=4010
       - AUTH_URL=http://auth-service:4001
       - MUSIC_URL=http://music-service:4002
-      - PLAYLIST_URL=http://playlist-service:4003
       - UPLOAD_URL=http://upload-service:4004
       - ANALYTICS_URL=http://analytics-service:4005
       - NOTIFY_URL=http://notification-service:4006
+      - AUTH_JWT_SECRET=${AUTH_JWT_SECRET:-dev-secret-change-me}
     deploy:
       replicas: 1
       restart_policy:
@@ -22,6 +22,8 @@ services:
     image: yeahmusic/auth-service:latest
     environment:
       - PORT=4001
+      - AUTH_DATABASE_URL=postgres://auth:authpass@auth-db:5432/auth
+      - AUTH_JWT_SECRET=${AUTH_JWT_SECRET:-dev-secret-change-me}
     deploy:
       replicas: 2
       restart_policy:
@@ -31,8 +33,7 @@ services:
     image: yeahmusic/music-service:latest
     environment:
       - PORT=4002
-      - MUSIC_DB_PRIMARY_URL=postgres://music:musicpass@music-db-primary:5432/music
-      - MUSIC_DB_REPLICA_URL=postgres://music:musicpass@music-db-replica:5432/music
+      - MUSIC_DATABASE_URL=postgres://music:musicpass@music-db:5432/music
     deploy:
       replicas: 2
       restart_policy:
@@ -76,7 +77,20 @@ services:
       restart_policy:
         condition: on-failure
 
-  music-db-primary:
+  auth-db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=auth
+      - POSTGRES_USER=auth
+      - POSTGRES_PASSWORD=authpass
+    ports:
+      - "5434:5432"
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    deploy:
+      replicas: 1
+
+  music-db:
     image: postgres:16-alpine
     environment:
       - POSTGRES_DB=music
@@ -85,20 +99,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - music_db_primary_data:/var/lib/postgresql/data
-    deploy:
-      replicas: 1
-
-  music-db-replica:
-    image: postgres:16-alpine
-    environment:
-      - POSTGRES_DB=music
-      - POSTGRES_USER=music
-      - POSTGRES_PASSWORD=musicpass
-    ports:
-      - "5433:5432"
-    volumes:
-      - music_db_replica_data:/var/lib/postgresql/data
+      - music_db_data:/var/lib/postgresql/data
     deploy:
       replicas: 1
 
@@ -149,6 +150,6 @@ configs:
     file: ../../../monitoring/alertmanager/alertmanager.yml
 
 volumes:
-  music_db_primary_data:
-  music_db_replica_data:
+  auth_db_data:
+  music_db_data:
 

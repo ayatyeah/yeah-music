@@ -1,4 +1,4 @@
-import { Activity, Server, UploadCloud, Wifi, Cpu, HardDrive } from 'lucide-react';
+import { Server, UploadCloud, Wifi, Cpu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TopNav from '../../components/layout/TopNav';
 import { useTelemetryStore } from '../../store/useTelemetryStore';

@@ -18,7 +18,7 @@ Prereqs: Docker Desktop (daemon running).
   - Frontend (nginx 80): `http://localhost:80`
   - API Gateway: `http://localhost:4010`
   - Prometheus: `http://localhost:9091`
-  - Grafana: `http://localhost:3001` (admin/admin)
+  - Grafana: `http://localhost:3002` (admin/admin)
   - Alertmanager: `http://localhost:9093`
 
 ## Incident simulation (defense demo)
@@ -36,8 +36,10 @@ What you should see:
 ## SLI/SLO
 See `platform/sre/SLO.md`.
 
-## Music storage (PostgreSQL)
-- Primary: `music-db-primary` (port 5432)
-- Replica: `music-db-replica` (port 5433)
+## Storage boundaries (PostgreSQL)
+- `auth-db` stores users, credentials, roles, and JWT-owned identity data.
+- `music-db` stores tracks and playlists.
+- There are no cross-database foreign keys; services link ownership only by user UUID.
+- Audio files are stored outside PostgreSQL, through Docker volumes/static serving.
 
 

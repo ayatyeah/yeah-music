@@ -77,7 +77,7 @@ stringData:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: music-db-primary-pvc
+  name: music-db-pvc
   namespace: yeahmusic
 spec:
   accessModes:
@@ -89,17 +89,17 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: music-db-primary
+  name: music-db
   namespace: yeahmusic
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: music-db-primary
+      app: music-db
   template:
     metadata:
       labels:
-        app: music-db-primary
+        app: music-db
     spec:
       containers:
         - name: postgres
@@ -115,72 +115,16 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: music-db-primary-pvc
+            claimName: music-db-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: music-db-primary
+  name: music-db
   namespace: yeahmusic
 spec:
   selector:
-    app: music-db-primary
-  ports:
-    - name: postgres
-      port: 5432
-      targetPort: 5432
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: music-db-replica-pvc
-  namespace: yeahmusic
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: music-db-replica
-  namespace: yeahmusic
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: music-db-replica
-  template:
-    metadata:
-      labels:
-        app: music-db-replica
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:16-alpine
-          ports:
-            - containerPort: 5432
-          envFrom:
-            - secretRef:
-                name: music-db-credentials
-          volumeMounts:
-            - name: data
-              mountPath: /var/lib/postgresql/data
-      volumes:
-        - name: data
-          persistentVolumeClaim:
-            claimName: music-db-replica-pvc
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: music-db-replica
-  namespace: yeahmusic
-spec:
-  selector:
-    app: music-db-replica
+    app: music-db
   ports:
     - name: postgres
       port: 5432
