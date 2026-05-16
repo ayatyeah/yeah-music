@@ -22,11 +22,6 @@
 dist/
 build/
 
-================================================================================
-# CICD Pipelines (NOT REQUIRED BY PROJECT SPECIFICATION)
-================================================================================
-cicd/
-.github/workflows/
 
 ================================================================================
 # Node and Package Management (auto-installed, safe to ignore)
