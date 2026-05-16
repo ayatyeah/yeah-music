@@ -155,6 +155,10 @@ app.post('/tracks', async (req, res, next) => {
       return res.status(400).json({ error: 'VALIDATION_ERROR', message: 'title and artist are required.' });
     }
 
+    // Determine actor / owner from header if present (X-User-Id)
+    const actor = req.headers['x-user-id'] || payload.artistId || null;
+    if (actor) payload.artistId = actor;
+
     const track = await persistTrack(payload);
     res.status(201).json({ item: track });
   } catch (error) {
@@ -165,8 +169,38 @@ app.post('/tracks', async (req, res, next) => {
 app.put('/tracks/:trackId', async (req, res, next) => {
   try {
     const payload = req.body || {};
+    // Enforce ownership: caller must be the original artist to update
+    const actor = req.headers['x-user-id'] || payload.artistId || null;
+
+    const { rows } = await pool.query('SELECT * FROM tracks WHERE id = $1 LIMIT 1', [req.params.trackId]);
+    const existing = rows[0] || null;
+    if (existing && existing.artist_id && actor && existing.artist_id !== actor) {
+      return res.status(403).json({ error: 'FORBIDDEN', message: 'You are not the owner of this track.' });
+    }
+
+    // Preserve artist_id if already set, or set from actor if provided
+    if (existing && existing.artist_id) payload.artistId = existing.artist_id;
+    else if (actor) payload.artistId = actor;
+
     const track = await persistTrack(payload, req.params.trackId);
     res.json({ item: track });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/tracks/:trackId', async (req, res, next) => {
+  try {
+    const actor = req.headers['x-user-id'] || null;
+    const { rows } = await pool.query('SELECT * FROM tracks WHERE id = $1 LIMIT 1', [req.params.trackId]);
+    const existing = rows[0] || null;
+    if (!existing) return res.status(404).json({ error: 'NOT_FOUND' });
+    if (existing.artist_id && actor && existing.artist_id !== actor) {
+      return res.status(403).json({ error: 'FORBIDDEN', message: 'You are not the owner of this track.' });
+    }
+
+    await pool.query('DELETE FROM tracks WHERE id = $1', [req.params.trackId]);
+    res.status(204).end();
   } catch (error) {
     next(error);
   }
