@@ -12,7 +12,10 @@
     "@yeahmusic/common": "0.1.0",
     "express": "^5.1.0",
     "pino": "^9.7.0",
-    "pino-http": "^10.5.0"
+    "pino-http": "^10.5.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.0",
+    "pg": "^8.11.0"
   }
 }
 

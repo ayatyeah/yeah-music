@@ -40,15 +40,31 @@ export const useAuthStore = create(
           });
           throw error;
         }
-      },
-
-      register: async (payload) => {
-        set({ isLoading: true, error: null });
-        try {
-          const response = await authService.register(payload);
-          set({
-            user: response.user,
-            token: response.token,
+          {
+            name: 'yeahmusic-auth',
+            partialize: (state) => ({
+              user: state.user,
+              token: state.token,
+              isAuthenticated: state.isAuthenticated,
+              rememberMe: state.rememberMe,
+            }),
+            onRehydrateStorage: (storeApi) => (persistedState) => {
+              if (persistedState?.token && !persistedState?.user) {
+                // Try to fetch profile with persisted token
+                authService
+                  .me()
+                  .then((res) => {
+                    if (res?.user) {
+                      storeApi.setState({ user: res.user, isAuthenticated: true });
+                    }
+                  })
+                  .catch(() => {
+                    // token invalid -> clear
+                    storeApi.setState({ token: null, user: null, isAuthenticated: false });
+                  });
+              }
+            }
+          }
             isAuthenticated: true,
             isLoading: false,
           });
