@@ -41,6 +41,7 @@ export default function PlayerBar() {
   const listenedSecondsRef = useRef(0);
   const lastPlaybackPositionRef = useRef(null);
   const isSeekingRef = useRef(false);
+  const isPlayingRef = useRef(false);
   const [audioDuration, setAudioDuration] = useState(0);
 
   const durationSeconds = useMemo(
@@ -60,8 +61,13 @@ export default function PlayerBar() {
   }, [currentTrack, addToHistory, resetStreamSession]);
 
   useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
+
+  useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
+    let cancelled = false;
 
     const loadSource = async () => {
       if (audioUrlRef.current) {
@@ -69,15 +75,19 @@ export default function PlayerBar() {
         audioUrlRef.current = null;
       }
 
+      setAudioDuration(0);
+      setDuration(0);
       let source = currentTrack.audioUrl || currentTrack.previewUrl;
       if (!source && currentTrack.audioId) {
         const blob = await getAudioBlob(currentTrack.audioId);
+        if (cancelled) return;
         if (blob) {
           source = URL.createObjectURL(blob);
           audioUrlRef.current = source;
         }
       }
 
+      if (cancelled) return;
       if (!source) {
         addToast({
           type: 'error',
@@ -92,17 +102,28 @@ export default function PlayerBar() {
       audio.currentTime = 0;
       audio.load();
       setProgress(0);
+
+      if (isPlayingRef.current) {
+        audio.play().catch(() => {
+          addToast({
+            type: 'warning',
+            title: 'Press play again',
+            message: 'The browser blocked the first playback attempt.',
+          });
+        });
+      }
     };
 
     loadSource();
 
     return () => {
+      cancelled = true;
       if (audioUrlRef.current) {
         URL.revokeObjectURL(audioUrlRef.current);
         audioUrlRef.current = null;
       }
     };
-  }, [currentTrack, setProgress, addToast]);
+  }, [currentTrack, setDuration, setProgress, addToast]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -124,7 +145,7 @@ export default function PlayerBar() {
       addToast({
         type: 'error',
         title: 'Playback failed',
-        message: 'Audio failed to load. Try another track.',
+        message: currentTrack.audioUrl ? 'Audio file is unavailable or unsupported on this browser.' : 'No shared audio file is attached to this track.',
       });
     };
 

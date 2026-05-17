@@ -289,12 +289,14 @@ export const useDataStore = create(
         }
       },
 
-      deleteTrack: async (trackId, userId) => {
+      deleteTrack: async (trackId, userIdentity) => {
         const original = get().library;
         const target = original.find((track) => track.id === trackId);
+        const userId = typeof userIdentity === 'object' ? userIdentity?.id : userIdentity;
+        const username = typeof userIdentity === 'object' ? userIdentity?.username : '';
 
         if (!target) throw new Error('Track not found.');
-        if (userId && target.artistId && target.artistId !== userId) {
+        if (target.artistId ? target.artistId !== userId : target.artist?.toLowerCase() !== username?.toLowerCase()) {
           throw new Error('Only the track owner can delete this release.');
         }
 

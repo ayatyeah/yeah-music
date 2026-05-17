@@ -1,23 +1,34 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Image, Save, X } from 'lucide-react';
+import { Image, Save, Trash2, X } from 'lucide-react';
 import TopNav from '../../components/layout/TopNav';
 import LyricsEditor from '../../components/artist/LyricsEditor';
 import { useDataStore } from '../../store/useDataStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { useNotificationStore } from '../../store/useNotificationStore';
 import { getAudioBlob } from '../../services/localMedia';
 import { getTrackCover } from '../../utils/cover';
 
 export default function ArtistReleases() {
-  const { library, updateTrack, isLoading } = useDataStore();
+  const { library, updateTrack, deleteTrack, isLoading } = useDataStore();
   const user = useAuthStore((state) => state.user);
-  const addToast = useNotificationStore((state) => state.addToast);
   const [editingTrack, setEditingTrack] = useState(null);
+  const userId = user?.id;
+  const username = user?.username;
 
   const artistReleases = useMemo(
-    () => library.filter((track) => !track.artistId || track.artistId === user?.id),
-    [library, user?.id]
+    () =>
+      library.filter(
+        (track) =>
+          track.artistId === userId ||
+          (!track.artistId && username && track.artist?.toLowerCase() === username.toLowerCase())
+      ),
+    [library, userId, username]
   );
+
+  const handleDelete = async (track) => {
+    const confirmed = window.confirm(`Delete "${track.title}"? This cannot be undone.`);
+    if (!confirmed) return;
+    await deleteTrack(track.id, user);
+  };
 
   return (
     <div className="flex-1 bg-yeah-bg overflow-y-auto no-scrollbar pb-48 md:pb-32">
@@ -41,16 +52,11 @@ export default function ArtistReleases() {
                   Edit
                 </button>
                 <button
-                  onClick={() =>
-                    addToast({
-                      type: 'warning',
-                      title: 'Unpublish',
-                      message: 'Unpublish workflow is not available yet.',
-                    })
-                  }
-                  className="flex-1 bg-[#2b2b2b] text-white py-2 rounded-lg text-sm"
+                  onClick={() => handleDelete(track)}
+                  disabled={isLoading}
+                  className="flex-1 bg-red-950/70 text-red-100 py-2 rounded-lg text-sm inline-flex items-center justify-center gap-2 disabled:opacity-60"
                 >
-                  Unpublish
+                  <Trash2 size={15} /> Delete
                 </button>
               </div>
             </div>

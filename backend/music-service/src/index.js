@@ -66,6 +66,20 @@ const requireArtist = (req, res) => {
   return true;
 };
 
+const normalizeOwnerName = (value) => String(value || '').trim().toLowerCase();
+
+const canModifyTrack = (track, req) => {
+  const actorId = req.headers['x-user-id'] || null;
+  const actorName = req.headers['x-username'] || null;
+
+  if (track.artist_id) {
+    return Boolean(actorId) && track.artist_id === actorId;
+  }
+
+  // Legacy tracks may not have artist_id. Allow only the matching artist name.
+  return Boolean(actorName) && normalizeOwnerName(track.artist) === normalizeOwnerName(actorName);
+};
+
 const parseDurationToSeconds = (duration) => {
   if (!duration || typeof duration !== 'string') return null;
   const parts = duration.split(':').map((value) => Number(value));
@@ -238,7 +252,7 @@ app.put('/tracks/:trackId', async (req, res, next) => {
 
     const { rows } = await pool.query('SELECT * FROM tracks WHERE id = $1 LIMIT 1', [req.params.trackId]);
     const existing = rows[0] || null;
-    if (existing && existing.artist_id && actor && existing.artist_id !== actor) {
+    if (existing && !canModifyTrack(existing, req)) {
       return res.status(403).json({ error: 'FORBIDDEN', message: 'You are not the owner of this track.' });
     }
 
@@ -257,11 +271,10 @@ app.delete('/tracks/:trackId', async (req, res, next) => {
   try {
     if (!requireArtist(req, res)) return;
 
-    const actor = req.headers['x-user-id'] || null;
     const { rows } = await pool.query('SELECT * FROM tracks WHERE id = $1 LIMIT 1', [req.params.trackId]);
     const existing = rows[0] || null;
     if (!existing) return res.status(404).json({ error: 'NOT_FOUND' });
-    if (existing.artist_id && actor && existing.artist_id !== actor) {
+    if (!canModifyTrack(existing, req)) {
       return res.status(403).json({ error: 'FORBIDDEN', message: 'You are not the owner of this track.' });
     }
 
