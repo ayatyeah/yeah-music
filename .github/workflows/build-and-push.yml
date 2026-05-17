@@ -18,25 +18,25 @@ jobs:
             context: ./frontend
             dockerfile: frontend/Dockerfile
           - name: api-gateway
-            context: ./backend/api-gateway
+            context: ./backend
             dockerfile: backend/api-gateway/Dockerfile
           - name: auth-service
-            context: ./backend/auth-service
+            context: ./backend
             dockerfile: backend/auth-service/Dockerfile
           - name: analytics-service
-            context: ./backend/analytics-service
+            context: ./backend
             dockerfile: backend/analytics-service/Dockerfile
           - name: music-service
-            context: ./backend/music-service
+            context: ./backend
             dockerfile: backend/music-service/Dockerfile
           - name: notification-service
-            context: ./backend/notification-service
+            context: ./backend
             dockerfile: backend/notification-service/Dockerfile
           - name: playlist-service
-            context: ./backend/playlist-service
+            context: ./backend
             dockerfile: backend/playlist-service/Dockerfile
           - name: upload-service
-            context: ./backend/upload-service
+            context: ./backend
             dockerfile: backend/upload-service/Dockerfile
 
     steps:
