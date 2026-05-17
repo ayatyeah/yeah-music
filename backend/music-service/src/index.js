@@ -12,16 +12,9 @@ const { app } = createServiceApp({ serviceName: SERVICE });
 
 const pool = new Pool({ connectionString: DATABASE_URL });
 
-const seedTracks = [
-  { id: 't1', title: 'Yeah Vibes', artist: 'YeahAyat', duration: '3:03', durationSec: 183, plays: 0 },
-  { id: 't2', title: 'SRE Nights', artist: 'Ops Crew', duration: '3:34', durationSec: 214, plays: 0 },
-  { id: 't3', title: 'Latency Dreams', artist: 'Grafana', duration: '3:21', durationSec: 201, plays: 0 }
-];
+const seedTracks = [];
 
-const seedPlaylists = [
-  { id: 'p1', name: 'SRE Focus', trackIds: ['t2', 't3'], isPublic: true },
-  { id: 'p2', name: 'Daily Mix', trackIds: ['t1', 't2'], isPublic: true }
-];
+const seedPlaylists = [];
 
 const mapRowToTrack = (row) => ({
   id: row.id,
