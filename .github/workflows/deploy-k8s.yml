@@ -1,10 +1,6 @@
 name: Deploy to Kubernetes
 
 on:
-  workflow_run:
-    workflows: ["Build and Push Images"]
-    types: [completed]
-    branches: [master, main]
   workflow_dispatch: {}
 
 permissions:
@@ -12,7 +8,6 @@ permissions:
 
 jobs:
   deploy:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     concurrency:
       group: deploy-k8s-production
@@ -37,7 +32,7 @@ jobs:
         run: |
           set -euo pipefail
           NAMESPACE=yeahmusic
-          IMAGE_TAG="${{ github.event.workflow_run.head_sha || github.sha }}"
+          IMAGE_TAG="${{ github.sha }}"
 
           DEPLOYMENTS=(
             "api-gateway:api-gateway"

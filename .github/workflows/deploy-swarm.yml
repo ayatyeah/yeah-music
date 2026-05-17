@@ -1,10 +1,6 @@
 name: Deploy to Docker Swarm
 
 on:
-  workflow_run:
-    workflows: ["Build and Push Images"]
-    types: [completed]
-    branches: [master, main]
   workflow_dispatch: {}
 
 permissions:
@@ -12,7 +8,6 @@ permissions:
 
 jobs:
   deploy-swarm:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     concurrency:
       group: deploy-swarm-production
@@ -28,7 +23,7 @@ jobs:
       - name: Copy compose and deploy
         env:
           GHCR_OWNER: ${{ github.repository_owner }}
-          IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           set -euo pipefail
           scp -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.SWARM_USER }}@${{ secrets.SWARM_HOST }}:/tmp/docker-compose.yml
