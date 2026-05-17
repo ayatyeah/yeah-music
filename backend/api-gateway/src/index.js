@@ -14,6 +14,15 @@ const JWT_SECRET = process.env.AUTH_JWT_SECRET || process.env.JWT_SECRET || 'dev
 
 const { app } = createServiceApp({ serviceName: SERVICE });
 
+app.use((req, res, next) => {
+  if (req.path.startsWith('/music') || req.path.startsWith('/playlists')) {
+    delete req.headers['if-none-match'];
+    delete req.headers['if-modified-since'];
+    res.setHeader('Cache-Control', 'no-store');
+  }
+  next();
+});
+
 // When express.json() runs before the proxy, the request body stream is consumed.
 // Add `onProxyReq` to copy the parsed body back into the proxied request so
 // upstream services receive the JSON payload and Content-Length header.

@@ -104,7 +104,12 @@ function createServiceApp({ serviceName }) {
       console.error('Error while logging unhandled error', logErrOuter, err);
     }
 
-    res.status(500).json({ error: 'INTERNAL_ERROR', service: serviceName });
+    const status = err.statusCode || err.status || 500;
+    if (err.type === 'entity.too.large' || status === 413) {
+      return res.status(413).json({ error: 'PAYLOAD_TOO_LARGE', service: serviceName });
+    }
+
+    res.status(status >= 400 && status < 600 ? status : 500).json({ error: 'INTERNAL_ERROR', service: serviceName });
   });
 
   return { app, logger, metrics };

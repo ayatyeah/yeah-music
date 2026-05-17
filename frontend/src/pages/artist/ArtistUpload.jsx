@@ -79,6 +79,29 @@ export default function ArtistUpload() {
       reader.readAsDataURL(file);
     });
 
+  const readImage = (src) =>
+    new Promise((resolve, reject) => {
+      const image = document.createElement('img');
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error('Cover image could not be processed.'));
+      image.src = src;
+    });
+
+  const compressCoverFile = async (file) => {
+    const source = await readFileAsDataUrl(file);
+    const image = await readImage(source);
+    const maxSize = 720;
+    const scale = Math.min(1, maxSize / Math.max(image.naturalWidth, image.naturalHeight));
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d');
+    context.drawImage(image, 0, 0, width, height);
+    return canvas.toDataURL('image/jpeg', 0.82);
+  };
+
   const simulateUpload = () =>
     new Promise((resolve) => {
       setState('uploading');
@@ -108,7 +131,7 @@ export default function ArtistUpload() {
       await simulateUpload();
       setState('processing');
       const uploadedAudio = await uploadService.uploadTrack(audioFile);
-      const coverDataUrl = coverFile ? await readFileAsDataUrl(coverFile) : '';
+      const coverDataUrl = coverFile ? await compressCoverFile(coverFile) : '';
       await uploadTrack({
         title: form.title,
         artist: user?.username || 'Artist',
