@@ -62,6 +62,66 @@ curl -fsS http://127.0.0.1:4002/healthz
 curl -fsS http://127.0.0.1:4001/healthz
 ```
 
+## 4b) Smoke test checklist
+
+Run this after every deploy on the droplet:
+
+```bash
+cd ~/yeah-music
+
+docker compose config --services
+docker compose ps
+
+for port in 4001 4002 4003 4004 4005 4006 4010; do
+	curl -fsS "http://127.0.0.1:${port}/healthz"
+	curl -fsS "http://127.0.0.1:${port}/readyz"
+done
+
+curl -fsS http://127.0.0.1/ >/dev/null
+curl -I http://127.0.0.1:80
+curl -fsS http://127.0.0.1:9091/-/healthy
+curl -fsS http://127.0.0.1:9093/-/healthy
+curl -fsS http://127.0.0.1:3002/api/health
+
+curl -fsS http://127.0.0.1:4010/metrics >/dev/null
+curl -fsS http://127.0.0.1:4001/metrics >/dev/null
+curl -fsS http://127.0.0.1:4002/metrics >/dev/null
+```
+
+## 4c) Music upload smoke test
+
+This checks the actual song-upload flow, not just container health:
+
+```bash
+cd ~/yeah-music
+
+printf 'RIFFTESTAUDIO' > /tmp/yeahmusic-smoke.mp3
+
+curl -fsS -X POST http://127.0.0.1:4004/upload \
+	-F 'file=@/tmp/yeahmusic-smoke.mp3;type=audio/mpeg'
+
+curl -fsS -X POST http://127.0.0.1:4002/tracks \
+	-H 'Content-Type: application/json' \
+	-H 'X-User-Id: smoke-artist' \
+	-H 'X-User-Role: artist' \
+	-H 'X-Username: Smoke Artist' \
+	-d '{"id":"tr_smoke_test_track","title":"Smoke Test Track","artist":"Smoke Artist","artistId":"smoke-artist","genre":"Test","album":"Smoke Album","description":"Droplet smoke test","lyrics":"test lyrics","audioId":"smoke-audio","audioUrl":"/media/smoke-audio.mp3","duration":"0:30"}'
+
+curl -fsS http://127.0.0.1:4002/tracks
+curl -fsS http://127.0.0.1:4002/stream/tr_smoke_test_track >/dev/null
+```
+
+If you want to validate the incident path too:
+
+```bash
+curl -fsS -X POST http://127.0.0.1:4004/admin/simulate-failure \
+	-H 'Content-Type: application/json' \
+	-d '{"mode":"error","durationSeconds":30}'
+
+curl -i http://127.0.0.1:4004/healthz
+curl -fsS http://127.0.0.1:4004/readyz
+```
+
 ## 5) Validate databases (now separated)
 
 Project has 2 independent PostgreSQL containers:
