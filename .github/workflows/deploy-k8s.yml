@@ -22,9 +22,26 @@ jobs:
 
       - name: Configure kubeconfig
         run: |
-          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > kubeconfig
+          set -euo pipefail
+          if [ -z "${{ secrets.KUBE_CONFIG_DATA }}" ]; then
+            echo "ERROR: KUBE_CONFIG_DATA secret is empty. Add the base64 kubeconfig into repository secrets: Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          echo "Decoding kubeconfig..."
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > kubeconfig || true
+          if [ ! -s kubeconfig ]; then
+            echo "ERROR: decoded kubeconfig is empty or invalid. Check the secret value."
+            ls -l kubeconfig || true
+            echo "--- begin kubeconfig (first 200 chars) ---"
+            head -c 200 kubeconfig || true
+            echo "--- end kubeconfig ---"
+            exit 1
+          fi
           mkdir -p $HOME/.kube
           mv kubeconfig $HOME/.kube/config
+          echo "kubeconfig written to $HOME/.kube/config"
+          echo "Namespaces available:" 
+          kubectl --kubeconfig=$HOME/.kube/config get ns || true
 
       - name: Update deployment images and verify rollout
         env:
@@ -45,6 +62,11 @@ jobs:
           )
 
           updated=()
+          echo "Listing deployments in namespace $NAMESPACE before updates:"
+          kubectl get deploy -n "$NAMESPACE" --no-headers || true
+          count=$(kubectl get deploy -n "$NAMESPACE" --no-headers 2>/dev/null | wc -l || true)
+          echo "Found deployments in $NAMESPACE: ${count}"
+
           for entry in "${DEPLOYMENTS[@]}"; do
             dep="${entry%%:*}"
             container="${entry##*:}"
@@ -57,7 +79,9 @@ jobs:
           done
 
           if [ "${#updated[@]}" -eq 0 ]; then
-            echo "No matching deployments found in namespace $NAMESPACE"
+            echo "ERROR: No matching deployments found in namespace $NAMESPACE"
+            echo "Check that the namespace exists and deployments are applied."
+            kubectl get deploy -n "$NAMESPACE" || true
             exit 1
           fi
 
