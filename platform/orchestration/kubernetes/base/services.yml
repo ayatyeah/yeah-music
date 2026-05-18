@@ -22,7 +22,8 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: yeahmusic/auth-service:latest
+          image: ghcr.io/ayatyeah/auth-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4001
           env:
@@ -84,7 +85,8 @@ spec:
     spec:
       containers:
         - name: music-service
-          image: yeahmusic/music-service:latest
+          image: ghcr.io/ayatyeah/music-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4002
           resources:
@@ -151,7 +153,8 @@ spec:
     spec:
       containers:
         - name: playlist-service
-          image: yeahmusic/playlist-service:latest
+          image: ghcr.io/ayatyeah/playlist-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4003
           env:
@@ -207,7 +210,8 @@ spec:
     spec:
       containers:
         - name: upload-service
-          image: yeahmusic/upload-service:latest
+          image: ghcr.io/ayatyeah/upload-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4004
           env:
@@ -274,7 +278,8 @@ spec:
     spec:
       containers:
         - name: analytics-service
-          image: yeahmusic/analytics-service:latest
+          image: ghcr.io/ayatyeah/analytics-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4005
           env:
@@ -330,7 +335,8 @@ spec:
     spec:
       containers:
         - name: notification-service
-          image: yeahmusic/notification-service:latest
+          image: ghcr.io/ayatyeah/notification-service:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4006
           env:
@@ -387,6 +393,7 @@ spec:
       containers:
         - name: frontend
           image: ghcr.io/ayatyeah/frontend:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5173
           readinessProbe:
