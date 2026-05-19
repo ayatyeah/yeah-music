@@ -5,6 +5,8 @@
   vars:
     install_kubernetes: true
     kubernetes_version_channel: "v1.30"
+    repo_url: "https://github.com/ayatyeah/yeah-music"
+    repo_ref: "master"
   tasks:
     - name: Install apt dependencies
       apt:
